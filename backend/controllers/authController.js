@@ -55,7 +55,7 @@ const login = async (req, res) => {
   } catch (error) {
     res
       .status(500)
-      .json({ message: "Error en el login", error: error.message });
+      .json({ message: "Credenciales inválidas", error: error.message });
   }
 };
 
