@@ -18,7 +18,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // 4. Rutas de la API
 app.use('/api/auth', require('./routes/authRoutes'));
-// app.use('/api/posts', require('./routes/postRoutes'));
+app.use('/api/posts', require('./routes/postRoutes'));
 // app.use('/api/users', require('./routes/userRoutes'));
 // app.use('/api/comments', require('./routes/commentRoutes'));
 // app.use('/api/materials', require('./routes/materialRoutes'));

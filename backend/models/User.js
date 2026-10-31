@@ -25,7 +25,7 @@ const userSchema = new mongoose.Schema(
       enum: ['admin', 'writer', 'member'],
       default: 'member', 
     },
-    // 📌 Autores que este usuario sigue (solo writers/admins).   
+    followers: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
     following: [
       {
         type: mongoose.Schema.Types.ObjectId,
