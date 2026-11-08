@@ -29,18 +29,28 @@ const RightBar = () => {
     fetchPosts();
   }, []);
 
-  const autores = [...new Map(
+  const totalLikesPorAutor = (autor) =>
     posts
-      .filter((p) => p.author)
-      .sort((a, b) => (b.likes) - (a.likes))
-      .slice(0, 4)
-      .map((p) => [p.author._id, p.author])
-  ).values()];
+      .filter((p) => (p.author?._id || p.author) === autor._id)
+      .reduce((suma, p) => suma + (p.likes || 0), 0);
 
+  const autores = [
+    ...new Map(
+      posts.filter((p) => p.author).map((p) => [p.author._id, p.author]),
+    ).values(),
+  ]
+    .sort((a, b) => totalLikesPorAutor(b) - totalLikesPorAutor(a))
+    .slice(0, 4);
 
-  const blogsOrdenados = [...posts].sort(
-    (a, b) => new Date(b.createdAt) - new Date(a.createdAt),
-  ).slice(0, 4);
+  const categorias = [
+    ...new Map(
+      posts.filter((p) => p.category).map((p) => [p.category._id, p.category]),
+    ).values(),
+  ];
+
+  const blogsOrdenados = [...posts]
+    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+    .slice(0, 4);
 
   if (!posts)
     return (
@@ -87,9 +97,7 @@ const RightBar = () => {
 
                 <div className="flex flex-col min-w-44 max-w-44">
                   <Label>{f.name}</Label>
-                  <Description className="line-clamp-2">
-                    {f.bio}
-                  </Description>
+                  <Description className="line-clamp-2">{f.bio}</Description>
                 </div>
 
                 <Tooltip delay={0}>
@@ -112,9 +120,12 @@ const RightBar = () => {
 
         {/* see more */}
         <div className="mx-2 mt-2 mb-5">
-          <Link to="/authors" className="w-full cursor-pointer text-sm text-green-500 dark:text-green-300">
+          <Link
+            to="/authors"
+            className="w-full cursor-pointer text-sm text-green-500 dark:text-green-300"
+          >
             See more authors...
-          </Link>          
+          </Link>
         </div>
 
         <Separator />
@@ -129,11 +140,8 @@ const RightBar = () => {
         {/* list uploaded posts */}
         <ul className="flex flex-col gap-2">
           {blogsOrdenados.map((u) => (
-            <Link to={`/post/${u._id}`}>
-              <li
-                key={u._id}
-                className="flex items-center justify-between my-2 mx-4 rounded-lg p-1"
-              >
+            <Link key={u._id} to={`/post/${u._id}`}>
+              <li className="flex items-center justify-between my-2 mx-4 rounded-lg p-1">
                 <div className="flex gap-4 items-center">
                   <Profile
                     className="rounded-lg"
@@ -161,7 +169,9 @@ const RightBar = () => {
                         </div>
                         <div className="flex gap-2">
                           <Comment className="size-4 text-gray-500" />
-                          <span className="text-muted text-xs">{u.comments}</span>
+                          <span className="text-muted text-xs">
+                            {u.comments}
+                          </span>
                         </div>
                         <div className="flex gap-2">
                           <NodesRight className="size-4 text-gray-500" />
@@ -177,9 +187,12 @@ const RightBar = () => {
         </ul>
         {/* see more */}
         <div className="mx-2 mt-2 mb-5">
-        <Link to="/blogs" className="w-full cursor-pointer text-sm text-green-500 dark:text-green-300">
+          <Link
+            to="/blogs"
+            className="w-full cursor-pointer text-sm text-green-500 dark:text-green-300"
+          >
             See more posts...
-          </Link>                
+          </Link>
         </div>
 
         <Separator />
@@ -187,17 +200,22 @@ const RightBar = () => {
         {/* recommended topics */}
         <div className="mx-2 mt-6 mb-2">
           <p className="font-semibold w-full text-lg text-gray-700 dark:text-white">
-            Recomended topics
+            Categorias
           </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-3 mb-10">
-          {posts.map((p)=> (
-            <Chip variant="primary" size="lg" className="cursor-pointer">
-              <Chip.Label>{p.category?.name}</Chip.Label>
-            </Chip>
-          ))
-          }
+          {categorias.map((p) => (
+            <Link key={p._id} to={`/category/${p.slug}`}>
+              <Chip                
+                variant="primary"
+                size="lg"
+                className="cursor-pointer"
+              >
+                <Chip.Label>{p.name}</Chip.Label>
+              </Chip>            
+            </Link>
+          ))}
         </div>
       </div>
     </aside>

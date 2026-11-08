@@ -17,6 +17,7 @@ import { Toast } from '@heroui/react'
 import Page404 from './pages/404Page/Page404'
 import ProfileInfo from './pages/ProfilePage/ProfileInfo'
 import Blogs from './pages/Blogs/Blogs'
+import CategoryPage from './pages/CategoryPage/CategoryPage'
 
 
 function App() {  
@@ -60,6 +61,7 @@ function App() {
             <Route path='/my-profile/:id' element={<ProfileInfo />}/>
           </Route>
           <Route path='/blogs' element={<Blogs />} />
+          <Route path='/category/:slug' element={<CategoryPage />} />
           <Route path="*" element={<Page404/>}/>
         </Route>
 
