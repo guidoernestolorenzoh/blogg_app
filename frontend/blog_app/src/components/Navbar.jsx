@@ -203,7 +203,7 @@ const Navbar = () => {
                 theme={theme}
                 user={user}
                 src={user.avatar}
-                className="text-lg bg-blue-400 text-white cursor-pointer"
+                className="text-lg bg-blue-400 text-white object-cover cursor-pointer"
               />
               {/* write */}
               {(user.role === "writer" || user.role === "admin") && (
@@ -211,7 +211,7 @@ const Navbar = () => {
                   nameButton="Write"
                   icon={<PencilToSquare />}
                   headerTitle="Create Post"
-                  className={`px-3 py-0.5 text-lg cursor-pointer rounded-lg gap-1 flex items-center bg-transparent ${theme === "dark" ? "text-gray-300" : "text-black"}`}
+                  className={`px-1 py-0.5 text-lg cursor-pointer rounded-lg gap-1 flex items-center bg-transparent ${theme === "dark" ? "text-gray-300" : "text-black"}`}
                 />
               )}
             </>

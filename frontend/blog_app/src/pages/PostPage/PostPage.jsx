@@ -19,7 +19,7 @@ const PostPage = () => {
   if (loading)
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <Spinner size="xl"/>
+        <Spinner size="xl" />
       </div>
     );
   if (!post)
@@ -29,11 +29,15 @@ const PostPage = () => {
       </div>
     );
 
+  const paragraphs = post.content
+    .split(/\n+/)
+    .map((p) => p.trim())
+    .filter(Boolean);
   return (
     <>
-      <div className="flex flex-col">
+      <div className="flex flex-col max-w-5xl mx-auto px-4">
         <div className="flex justify-between items-center">
-          <div className="flex flex-col mx-16">
+          <div className="flex flex-col">
             <div className="flex items-center my-5 gap-2">
               <div className="flex items-center gap-4">
                 <Profile
@@ -55,7 +59,7 @@ const PostPage = () => {
 
         <div className="my-2">
           {/* title */}
-          <div className="flex flex-col mx-16 ">
+          <div className="flex flex-col">
             <h1 className="text-3xl font-bold mb-5">{post?.title}</h1>
 
             {post.coverImage && (
@@ -63,11 +67,15 @@ const PostPage = () => {
                 src={post?.coverImage}
                 className="h-105 rounded-4xl"
                 alt={post.title}
-              />)}
-           
+              />
+            )}
+
             <div className="mt-6">
-              {post.content.split("\n\n").map((parrafo, index) => (
-                <p key={index} className="text-xl text-justify mb-5 leading-relaxed">
+              {paragraphs.map((parrafo, index) => (
+                <p
+                  key={index}
+                  className="text-xl text-justify mb-5 leading-relaxed"
+                >
                   {parrafo}
                 </p>
               ))}

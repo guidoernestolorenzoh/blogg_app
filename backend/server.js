@@ -8,6 +8,8 @@ const express = require('express');
 const cors = require('cors');
 const connectDB = require('./config/db');
 
+
+
 const app = express();
 
 // 2. Middlewares globales 
@@ -19,6 +21,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 // 4. Rutas de la API
 app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/posts', require('./routes/postRoutes'));
+app.use('/api/categories', require('./routes/categoryRoutes'));
 // app.use('/api/users', require('./routes/userRoutes'));
 // app.use('/api/comments', require('./routes/commentRoutes'));
 // app.use('/api/materials', require('./routes/materialRoutes'));

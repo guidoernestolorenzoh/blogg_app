@@ -2,9 +2,12 @@
 import { Avatar, Button, Dropdown, Label, cn } from "@heroui/react";
 import { AVATARITEMS } from "../utils";
 import { useAuthStore } from "../store/useAuthStore";
+import { useNavigate } from "react-router-dom";
 
 
-const Profile = ({ user, theme, isOpen, className, onOpenChange, alt, size, src }) => {
+const Profile = ({ user, theme, isOpen, className, onOpenChange, alt, size, title, src }) => {
+  
+  const navigate = useNavigate();
   const { logout } = useAuthStore();
   
   const isAdmin = user?.role === "admin";
@@ -20,25 +23,31 @@ const Profile = ({ user, theme, isOpen, className, onOpenChange, alt, size, src 
   }
 
   const handleAction = (item) => {
+    if (item.label === "My Profile") {
+      if (!user?._id && !user?.id) return;
+    navigate(`/my-profile/${user?._id || user?.id}`);
+    return;
+    }
     if (item.label === "Log out") {
       logout();
     }
   }
+  const fallbackLetter = (title || user?.name)?.trim()?.[0]?.toUpperCase();
 
   return (
     <Dropdown isOpen={isOpen} onOpenChange={onOpenChange}>
       <Dropdown.Trigger className="rounded-full">
       <Avatar className={cn("w-10 h-10 shrink-0", className)}>
           <Avatar.Image alt={alt} src={src} className={className}/>
-          <Avatar.Fallback className={className}  delayMs={600}>{user?.name?.charAt(0)}</Avatar.Fallback>
+          <Avatar.Fallback className={className}  delayMs={600}>{fallbackLetter}</Avatar.Fallback>
         </Avatar>
       </Dropdown.Trigger>
       <Dropdown.Popover>
         <div className={`px-3 pt-3 pb-1 `}>
           <div className="flex items-center gap-2">
             <Avatar size="sm">
-              <Avatar.Image alt="Jane" src={src} className={className} />
-              <Avatar.Fallback className="bg-blue-400 text-white" delayMs={600}>{user?.name?.charAt(0)}</Avatar.Fallback>
+              <Avatar.Image alt={alt} src={src} className={className} />
+              <Avatar.Fallback className="bg-blue-400 text-white" delayMs={600}>{fallbackLetter}</Avatar.Fallback>
             </Avatar>
             <div className={`flex flex-col gap-0 `}>
               <p className="text-lg leading-5 font-medium">{user?.name}</p>

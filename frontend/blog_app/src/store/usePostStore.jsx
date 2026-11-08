@@ -9,12 +9,11 @@ export const usePostStore = create((set, get) => ({
   loading: false,
   error: null,
 
-  
   fetchPostById: async (id) => {
     set({ post: null, loading: true, error: null });
     try {
       const res = await fetch(`${API_URL}/posts/${id}`, {
-        method: "GET",        
+        method: "GET",
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Error al cargar el post");
@@ -26,12 +25,12 @@ export const usePostStore = create((set, get) => ({
       set({ loading: false });
     }
   },
-  
+
   fetchPosts: async () => {
     set({ loading: true, error: null });
     try {
       const res = await fetch(`${API_URL}/posts`, {
-        method: "GET",        
+        method: "GET",
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Error al cargar los posts");
@@ -48,14 +47,22 @@ export const usePostStore = create((set, get) => ({
     const token = useAuthStore.getState().token;
 
     try {
+      const formData = new FormData();
+      formData.append("title", postData.title);
+      formData.append("content", postData.content);
+      formData.append("category", postData.category);
+      formData.append("status", postData.status);
+      postData.tags?.forEach((tag) => formData.append("tags", tag));
+      if (postData.coverImage instanceof File) {
+        formData.append("coverImage", postData.coverImage);
+      }
+
       const res = await fetch(`${API_URL}/posts`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(postData),
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData,
       });
+
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Error al crear el post");
 

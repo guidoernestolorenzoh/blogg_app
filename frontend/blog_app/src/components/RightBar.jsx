@@ -8,12 +8,50 @@ import {
   Tooltip,
   Chip,
 } from "@heroui/react";
-import { CirclePlus } from "@gravity-ui/icons";
-import { followers, uploadedBlogs } from "../utils";
+import {
+  CircleMinusFill,
+  CirclePlus,
+  Heart,
+  Comment,
+  NodesRight,
+} from "@gravity-ui/icons";
+import { timeAgo } from "../utils";
 import Profile from "./Profile";
+import { usePostStore } from "../store/usePostStore";
+import { useEffect } from "react";
+import { Link } from "react-router-dom";
 
 const RightBar = () => {
   const { theme } = useTheme();
+  const { posts, fetchPosts } = usePostStore();
+
+  useEffect(() => {
+    fetchPosts();
+  }, []);
+
+  const autores = [...new Map(
+    posts
+      .filter((p) => p.author)
+      .sort((a, b) => (b.likes) - (a.likes))
+      .slice(0, 4)
+      .map((p) => [p.author._id, p.author])
+  ).values()];
+
+
+  const blogsOrdenados = [...posts].sort(
+    (a, b) => new Date(b.createdAt) - new Date(a.createdAt),
+  ).slice(0, 4);
+
+  if (!posts)
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="flex gap-2">
+          <CircleMinusFill />
+          <span>No hay posts para mostrar</span>
+        </div>
+      </div>
+    );
+
   return (
     <aside className="h-full w-96 bg-white shrink-0 text-black shadow-md flex flex-col px-6 pt-6 z-30 dark:bg-[#121212] border-l border-gray-100 overflow-y-auto min-h-0 dark:border-gray-800">
       <div className="flex flex-col">
@@ -34,22 +72,23 @@ const RightBar = () => {
 
         {/* list followers */}
         <ul className="flex flex-col gap-2">
-          {followers.map((f) => (
+          {autores.map((f) => (
             <li
-              key={f.id}
+              key={f._id}
               className="flex items-center justify-between my-2 mx-4 rounded-lg p-1"
             >
               <div className="flex gap-4 items-center">
                 <Profile
-                  user={f.imageProfile}
-                  src={f.imageProfile}
+                  user={f}
+                  src={f?.avatar}
                   isOpen={false}
+                  className="object-cover"
                 />
 
                 <div className="flex flex-col min-w-44 max-w-44">
                   <Label>{f.name}</Label>
                   <Description className="line-clamp-2">
-                    {f.description}
+                    {f.bio}
                   </Description>
                 </div>
 
@@ -73,51 +112,74 @@ const RightBar = () => {
 
         {/* see more */}
         <div className="mx-2 mt-2 mb-5">
-          <a className="w-full cursor-pointer text-sm text-green-500 dark:text-green-300">
-            See more people...
-          </a>
+          <Link to="/authors" className="w-full cursor-pointer text-sm text-green-500 dark:text-green-300">
+            See more authors...
+          </Link>          
         </div>
 
         <Separator />
 
-        {/* recent uploaded blogs */}
+        {/* recent uploaded posts */}
         <div className="mx-2 mt-6 mb-2">
           <p className="font-semibold w-full text-lg text-gray-700 dark:text-white">
-            Recent uploaded blogs
+            Recent uploaded posts
           </p>
         </div>
 
-        {/* list uploaded blogs */}
+        {/* list uploaded posts */}
         <ul className="flex flex-col gap-2">
-          {uploadedBlogs.map((u) => (
-            <li
-              key={u.id}
-              className="flex items-center justify-between my-2 mx-4 rounded-lg p-1"
-            >
-              <div className="flex gap-4 items-center">
-                <Profile
-                  className="rounded-lg"
-                  size="lg"
-                  alt={u.name}
-                  user={u}
-                  src={u.image}
-                />
+          {blogsOrdenados.map((u) => (
+            <Link to={`/post/${u._id}`}>
+              <li
+                key={u._id}
+                className="flex items-center justify-between my-2 mx-4 rounded-lg p-1"
+              >
+                <div className="flex gap-4 items-center">
+                  <Profile
+                    className="rounded-lg"
+                    size="lg"
+                    title={u.title}
+                    alt={u.title}
+                    user={u}
+                    src={u?.coverImage}
+                    isOpen={false}
+                  />
 
-                <div className="flex flex-col">
-                  <Label className="line-clamp-2 text-md">{u.title}</Label>
-                  <div className="text-sm font-light dark:text-gray-200">
-                    {u.date}
+                  <div className="flex flex-col">
+                    <Label className="line-clamp-2 cursor-pointer text-md">
+                      {u.title}
+                    </Label>
+                    <div className="text-sm font-light dark:text-gray-200">
+                      {timeAgo(u?.createdAt)}
+                    </div>
+
+                    <div className="flex justify-between mt-2 items-center">
+                      <div className="flex items-center gap-5 text-lg">
+                        <div className="flex gap-2">
+                          <Heart className="size-4 text-gray-500" />
+                          <span className="text-muted text-xs">{u.likes}</span>
+                        </div>
+                        <div className="flex gap-2">
+                          <Comment className="size-4 text-gray-500" />
+                          <span className="text-muted text-xs">{u.comments}</span>
+                        </div>
+                        <div className="flex gap-2">
+                          <NodesRight className="size-4 text-gray-500" />
+                          <span className="text-muted text-xs">{u.shares}</span>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </li>
+              </li>
+            </Link>
           ))}
         </ul>
         {/* see more */}
         <div className="mx-2 mt-2 mb-5">
-          <a className="w-full cursor-pointer text-sm text-green-500 dark:text-green-300">
-            See more blogs...
-          </a>
+        <Link to="/blogs" className="w-full cursor-pointer text-sm text-green-500 dark:text-green-300">
+            See more posts...
+          </Link>                
         </div>
 
         <Separator />
@@ -130,15 +192,12 @@ const RightBar = () => {
         </div>
 
         <div className="flex flex-wrap items-center gap-3 mb-10">
-          <Chip variant="primary" size="lg" className="cursor-pointer">
-            <Chip.Label>Predicas</Chip.Label>
-          </Chip>
-          <Chip variant="primary" size="lg" className="cursor-pointer">
-            <Chip.Label>Enseñanzas</Chip.Label>
-          </Chip>
-          <Chip variant="primary" size="lg" className="cursor-pointer">
-            <Chip.Label>ABC de la vida cristiana</Chip.Label>
-          </Chip>
+          {posts.map((p)=> (
+            <Chip variant="primary" size="lg" className="cursor-pointer">
+              <Chip.Label>{p.category?.name}</Chip.Label>
+            </Chip>
+          ))
+          }
         </div>
       </div>
     </aside>

@@ -1,17 +1,24 @@
 import { useState, useRef, useEffect } from "react";
 import Profile from "./Profile";
-import { commentsData, followers, timeAgo, uploadedBlogs } from "../utils";
+import { commentsData, followers, formatDate, timeAgo } from "../utils";
 import {
   ArrowUturnCwRight,
+  Heart,
+  NodesRight,
   Persons,
   ThumbsUp,
   ThumbsUpFill,
+  Comment
 } from "@gravity-ui/icons";
-import { Avatar, Button, Label } from "@heroui/react";
+import { Button, Label } from "@heroui/react";
 import Follow from "./Follow";
 import Image from "./Image";
 
-const TabsAuthors = () => {
+
+const TabsAuthors = ({posts,
+  following=followers,
+  comments = commentsData,
+  about}) => {
   const [activeTab, setActiveTab] = useState("posts");
   const [sortBy, setSortBy] = useState("short");
   const [isOpen, setIsOpen] = useState(false);
@@ -25,25 +32,50 @@ const TabsAuthors = () => {
         <div className="">
             {/* list uploaded blogs */}
         <ul className="flex flex-col gap-2">
-          {uploadedBlogs.map((u) => (
+          {posts && (posts.map((u) => (
             <li
-              key={u.id}
+              key={u._id}
               className="flex items-center justify-between my-2 mx-4 rounded-lg p-1"
             >
               <div className="flex gap-4 items-center">
-                <Profile user={u} src={u.image} className="rounded-lg" size="lg"/>
-                
+              <Profile 
+                user={u} 
+                src={u?.coverImage} 
+                className="rounded-lg" 
+                size="lg" 
+                isOpen={false} 
+                title={u.title}
+                alt={u.title}
+                />
+              
+              
                 <div className="flex flex-col">
                   <Label className="line-clamp-2 text-xl max-w-2xl text-ellipsis">
-                  {u.title}
+                  {u?.title}
                   </Label>
                   <div className="text-lg font-light dark:text-gray-200">
-                    {u.date}
+                  {formatDate(u?.createdAt)}
                   </div>
+                  <div className="flex justify-between mt-2 items-center">
+                      <div className="flex items-center gap-5 text-lg">
+                        <div className="flex gap-2">
+                          <Heart className="size-4 text-gray-500" />
+                          <span className="text-muted text-xs">{u.likes}</span>
+                        </div>
+                        <div className="flex gap-2">
+                          <Comment className="size-4 text-gray-500" />
+                          <span className="text-muted text-xs">{u.comments}</span>
+                        </div>
+                        <div className="flex gap-2">
+                          <NodesRight className="size-4 text-gray-500" />
+                          <span className="text-muted text-xs">{u.shares}</span>
+                        </div>
+                      </div>
+                    </div>
                 </div>
               </div>
             </li>
-          ))}
+          )))}
         </ul>
         </div>
       ),
@@ -54,33 +86,11 @@ const TabsAuthors = () => {
       content: (
         <div className="flex flex-col my-4 gap-4">
           <h1 className="text-4xl font-semibold mb-4">About me</h1>
-          <p className="text-justify text-lg mb-4">
-            ¡Hola y bendiciones! Soy Peter, y este espacio nació de un profundo
-            deseo de compartir el amor de Dios en medio de la rutina diaria.
-            Creo firmemente que la fe no es solo para los domingos, sino para
-            cada momento de nuestras vidas. Aquí encontrarás un rincón seguro
-            donde hablamos de esperanza, fe y crecimiento espiritual. Mi
-            objetivo es animarte a caminar de la mano de Cristo, sin filtros y
-            con autenticidad. Ya sea que estés pasando por un valle o celebrando
-            en la cima, mi oración es que estas palabras te recuerden que nunca
-            estás solo. ¡Gracias por ser parte de esta comunidad! Siéntete libre
-            de explorar, comentar y compartir.
-          </p>
-
+          
           <Image className="object-cover rounded-2xl h-130 w-full mb-4" src="https://static.vecteezy.com/system/resources/previews/075/317/752/non_2x/a-man-sitting-at-a-desk-with-a-map-and-a-computer-photo.jpg" />
         
           <p className="text-justify text-lg">
-            Creo en el poder de las pequeñas historias para generar grandes
-            cambios. Escríbeme si necesitas oración o si quieres compartir tu
-            testimonio. ¡Caminemos juntos!. Mi misión es clara: crear un espacio
-            digital donde la tecnología se encuentre con el propósito eterno de
-            Dios. He dedicado este espacio a proporcionar contenido que
-            edifique, enseñe y consuele. Busco que cada artículo, reflexión y
-            recurso aquí publicado sea una herramienta útil para tu caminar
-            cristiano, ayudándote a aplicar la Palabra de Dios en los desafíos
-            del mundo actual. Mi compromiso es con la verdad y con esta
-            comunidad. ¡Únete a nosotros mientras crecemos juntos en gracia y
-            conocimiento!
+          {about}
           </p>
 
           {/* followers following */}
@@ -104,7 +114,7 @@ const TabsAuthors = () => {
       label: "Following",
       content: (
         <>
-          {followers.map((f) => (
+          {following.map((f) => (
             <div className="flex justify-between my-8">
               <div className="flex items-start gap-5">
                 <Profile
@@ -133,7 +143,7 @@ const TabsAuthors = () => {
       label: "Comments",
       content: (
         <div className="flex flex-col gap-6 my-4">
-          {commentsData.map((c) => (
+          {comments.map((c) => (
             <div key={c.id} className="flex flex-col gap-2">
               {/* Header: profile + nombre + fecha */}
               <div className="flex gap-3 items-center">

@@ -15,6 +15,8 @@ import AuthorProfile from './pages/Authors/AuthorProfile'
 import { useAuthStore } from './store/useAuthStore'
 import { Toast } from '@heroui/react'
 import Page404 from './pages/404Page/Page404'
+import ProfileInfo from './pages/ProfilePage/ProfileInfo'
+import Blogs from './pages/Blogs/Blogs'
 
 
 function App() {  
@@ -55,7 +57,9 @@ function App() {
           <Route path='/tag/:tagName' element={<PostByTags/>}/>
           <Route path='/post/:id' element={<PostPage/>}/>
           <Route element={<ProtectedRoute />}>
+            <Route path='/my-profile/:id' element={<ProfileInfo />}/>
           </Route>
+          <Route path='/blogs' element={<Blogs />} />
           <Route path="*" element={<Page404/>}/>
         </Route>
 

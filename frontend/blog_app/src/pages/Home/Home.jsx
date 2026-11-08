@@ -1,7 +1,7 @@
-import { Button, Separator } from "@heroui/react";
+import { Button, Separator, Spinner } from "@heroui/react";
 import Follow from "../../components/Follow";
 import Profile from "../../components/Profile";
-import { Heart, Comment, NodesRight } from "@gravity-ui/icons";
+import { Heart, Comment, NodesRight, CircleMinusFill } from "@gravity-ui/icons";
 import Image from "../../components/Image";
 import { usePostStore } from "../../store/usePostStore";
 import { timeAgo } from "../../utils";
@@ -15,13 +15,27 @@ const Home = () => {
     fetchPosts()
   }, [])
   
-  
+  if (loading)
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Spinner size="xl" />
+      </div>
+    );
+    if (!posts)
+      return (
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="flex gap-2">
+            <CircleMinusFill />
+            <span>No hay posts para mostrar</span>
+          </div>
+        </div>
+      );
   return (
     <>
       {posts.map((p) => (
-        <div key={p._id} className="flex flex-col">
-          <div className="flex justify-between items-center">
-            <div className="flex flex-col mx-16">
+        <div key={p._id} className="flex flex-col  mx-auto px-4">
+          <div className="flex justify-between max-w-7xl mx-16 items-center">
+            <div className="flex flex-col">
               <div className="flex items-center my-5 gap-2">
                 <div className="flex items-center gap-4">
                   <Profile
@@ -57,7 +71,7 @@ const Home = () => {
               <Image
                 src={p?.coverImage}
                 className="h-105 rounded-4xl"
-                alt={p.title}
+                alt={p?.title}
               />)}
 
               <div className="flex justify-between mt-2 items-center">

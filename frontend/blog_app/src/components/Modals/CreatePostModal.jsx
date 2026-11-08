@@ -8,20 +8,26 @@ import {
   TextField,
   cn,
   toast,
+  Select,
+  ListBox,
+  FieldError,
 } from "@heroui/react";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import TagInput from "./Inputs/TagInput";
 import TextArea from "../Inputs/TextArea";
 import { postSchema } from "../../schemas/postSchema";
 import { usePostStore } from "../../store/usePostStore";
 import { useNavigate } from "react-router-dom";
+import { useCategoryStore } from "../../store/useCategoryStore";
 
 const CreatePostModal = ({ className, nameButton, icon, headerTitle }) => {
   const { createPost } = usePostStore();
+  const { categories, fetchCategories } = useCategoryStore();
   const fileInputRef = useRef(null);
   const navigate = useNavigate();
   const [content, setContent] = useState("");
   const [title, setTitle] = useState("");
+  const [category, setCategory] = useState("");
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [isDragOver, setIsDragOver] = useState(false);
@@ -36,9 +42,14 @@ const CreatePostModal = ({ className, nameButton, icon, headerTitle }) => {
     tags: [],
   });
 
+  useEffect(() => {
+    fetchCategories();
+  }, []);
+
   const resetForm = () => {
     setTitle("");
     setContent("");
+    setCategory("");
     setCoverImage("");
     setPostData((prev) => ({ ...prev, tags: [] }));
     setErrors({});
@@ -47,11 +58,11 @@ const CreatePostModal = ({ className, nameButton, icon, headerTitle }) => {
 
   const handleSubmit = async (e, close) => {
     e?.preventDefault?.();
-    //e.preventDefault();
 
     const datos = {
       title,
       content,
+      category,
       tags: (postData.tags || [])
         .map((tag) => (typeof tag === "string" ? tag : tag.name))
         .filter(Boolean),
@@ -64,7 +75,11 @@ const CreatePostModal = ({ className, nameButton, icon, headerTitle }) => {
     setErrors({});
     setLoading(true);
     try {
-      const promise = createPost({ ...result.data, status: "published" });
+      const promise = createPost({
+        ...result.data,
+        status: "published",
+        coverImage,
+      });
       toast.promise(promise, {
         loading: "Creating post...",
         success: "Post created successfully",
@@ -123,7 +138,7 @@ const CreatePostModal = ({ className, nameButton, icon, headerTitle }) => {
       </Button>
       <Modal.Backdrop>
         <Modal.Container placement="auto">
-          <Modal.Dialog className="sm:max-w-md">
+          <Modal.Dialog className="max-w-md sm:max-w-xl">
             {({ close }) => (
               <>
                 <Modal.CloseTrigger />
@@ -248,6 +263,38 @@ const CreatePostModal = ({ className, nameButton, icon, headerTitle }) => {
                             handleValueChange("tags", data);
                           }}
                         />
+                      </TextField>
+
+                      <TextField>
+                        <Select
+                          isRequired
+                          className="w-full"
+                          placeholder="Select a category"
+                          selectedKey={category}
+                          onSelectionChange={(key) => setCategory(key)}
+                        >
+                          <Label>Category</Label>
+                          <Select.Trigger className="inputs-rounded">
+                            <Select.Value />
+                            <Select.Indicator />
+                          </Select.Trigger>
+                          <Select.Popover>
+                            <ListBox>
+                              {categories.map((cat) => (
+                                <ListBox.Item id={cat._id} textValue={cat.name}>
+                                  {cat.name}
+                                  <ListBox.ItemIndicator />
+                                </ListBox.Item>
+                              ))}
+                            </ListBox>
+                          </Select.Popover>
+                          <FieldError />
+                        </Select>
+                        {errors.category?.[0] && (
+                          <p className="text-sm text-red-500">
+                            {errors.category[0]}
+                          </p>
+                        )}
                       </TextField>
                     </form>
                   </Surface>
