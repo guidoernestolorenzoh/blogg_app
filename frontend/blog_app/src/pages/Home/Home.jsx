@@ -1,7 +1,7 @@
 import { Button, Separator, Spinner } from "@heroui/react";
 import Follow from "../../components/Follow";
 import Profile from "../../components/Profile";
-import { Heart, Comment, NodesRight, CircleMinusFill } from "@gravity-ui/icons";
+import { Heart, Comment, NodesRight, CircleMinusFill, Eye } from "@gravity-ui/icons";
 import Image from "../../components/Image";
 import { usePostStore } from "../../store/usePostStore";
 import { timeAgo } from "../../utils";
@@ -77,6 +77,9 @@ const Home = () => {
               <div className="flex justify-between mt-2 items-center">
                 <div className="flex items-center gap-1 text-lg">
                   <Button variant="ghost">
+                    <Eye className="size-6 text-gray-500" />
+                  </Button>
+                  <Button variant="ghost">
                     <Heart className="size-6 text-gray-500" />
                   </Button>
                   <Button variant="ghost">
@@ -87,6 +90,8 @@ const Home = () => {
                   </Button>
                 </div>
                 <div className="flex items-center text-gray-400 gap-2">
+                  <span>{p?.views} views</span>
+                  <span className="text-xl">•</span>
                   <span>{p?.likes} likes</span>
                   <span className="text-xl">•</span>
                   <span>{p?.comments} comments</span>

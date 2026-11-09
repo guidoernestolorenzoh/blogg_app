@@ -90,7 +90,6 @@ const getPostById = async (req, res) => {
       "name slug",
     )
 
-
     if (!post) {
       return res.status(404).json({ message: "No hay post para mostrar" });
     }

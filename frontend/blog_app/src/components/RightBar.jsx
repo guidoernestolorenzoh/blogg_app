@@ -14,6 +14,7 @@ import {
   Heart,
   Comment,
   NodesRight,
+  Eye,
 } from "@gravity-ui/icons";
 import { timeAgo } from "../utils";
 import Profile from "./Profile";
@@ -163,6 +164,10 @@ const RightBar = () => {
 
                     <div className="flex justify-between mt-2 items-center">
                       <div className="flex items-center gap-5 text-lg">
+                        <div className="flex gap-2">
+                          <Eye className="size-4 text-gray-500" />
+                          <span className="text-muted text-xs">{u.views}</span>
+                        </div>
                         <div className="flex gap-2">
                           <Heart className="size-4 text-gray-500" />
                           <span className="text-muted text-xs">{u.likes}</span>

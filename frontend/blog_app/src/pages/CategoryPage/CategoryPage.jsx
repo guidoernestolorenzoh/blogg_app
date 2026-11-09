@@ -47,12 +47,15 @@ const CategoryPage = () => {
   const filteredCategory = postByCategorySorted[0]?.category?.name;
   return (
     <>
+    <div className="flex max-w-7xl mx-16 px-4 my-2"> 
       <Chip
-        className="rounded-full bg-warning-soft max-w-7xl mx-16 text-warning-soft-foreground gap-2 px-4"                
+        className="rounded-full bg-warning-soft px-4 py-2  text-warning-soft-foreground gap-2 "                
       >
         <CircleFill width={10} />
         <Chip.Label className="text-lg">{filteredCategory}</Chip.Label>
       </Chip>
+
+    </div>
       {postByCategorySorted.map((p) => (
         <div key={p._id} className="flex flex-col  mx-auto px-4">
           <div className="flex justify-between max-w-7xl mx-16 items-center">

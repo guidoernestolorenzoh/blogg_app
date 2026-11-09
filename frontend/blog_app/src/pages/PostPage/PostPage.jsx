@@ -1,5 +1,5 @@
 import { Button, Separator, Spinner } from "@heroui/react";
-import { Comment, Heart, NodesRight } from "@gravity-ui/icons";
+import { Comment, Eye, Heart, NodesRight } from "@gravity-ui/icons";
 import Follow from "../../components/Follow";
 import Profile from "../../components/Profile";
 import Image from "../../components/Image";
@@ -84,6 +84,9 @@ const PostPage = () => {
             <div className="flex justify-between mt-2 items-center">
               <div className="flex items-center gap-1 text-lg">
                 <Button variant="ghost">
+                  <Eye className="size-6 text-gray-500" />
+                </Button>
+                <Button variant="ghost">
                   <Heart className="size-6 text-gray-500" />
                 </Button>
                 <Button variant="ghost">
@@ -94,6 +97,8 @@ const PostPage = () => {
                 </Button>
               </div>
               <div className="flex items-center text-gray-400 gap-2">
+                <span>{post?.views} views</span>
+                <span className="text-xl">•</span>
                 <span>{post?.likes} likes</span>
                 <span className="text-xl">•</span>
                 <span>{post?.comments} comments</span>

@@ -19,6 +19,29 @@ export const usePostStore = create((set, get) => ({
       if (!res.ok) throw new Error(data.message || "Error al cargar el post");
 
       set({ post: data });
+      let viewed = [];
+      try {
+        const saved = JSON.parse(localStorage.getItem("viewedPosts"));
+        if (Array.isArray(saved)) viewed = saved;
+      } catch {
+        viewed = [];
+      }
+
+      if (viewed.includes(id)) return;
+
+      viewed.push(id);
+      localStorage.setItem("viewedPosts", JSON.stringify(viewed));
+
+      const viewRes = await fetch(`${API_URL}/posts/${id}/view`, {
+        method: "POST",
+      });
+      if (viewRes.ok) {
+        const viewData = await viewRes.json();
+        set({
+          post: viewData,
+          posts: get().posts.map((p) => (p._id === id ? viewData : p)),
+        });
+      }
     } catch (error) {
       set({ error: error.message });
     } finally {

@@ -34,6 +34,10 @@ const postSchema = new mongoose.Schema(
       enum: ["draft", "published"],
       default: "draft",
     },
+    views: {
+      type: Number,
+      default: 0,
+    },
     likes: {
       type: Number,
       default: 0,
