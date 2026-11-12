@@ -1,4 +1,3 @@
-import {Toaster} from 'react-hot-toast'
 import {Route, Routes} from 'react-router-dom'
 import AppLayout from './pages/AppLayout'
 import Login from './components/Login'

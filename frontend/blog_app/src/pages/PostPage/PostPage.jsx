@@ -1,4 +1,4 @@
-import { Button, Separator, Spinner, ToggleButton } from "@heroui/react";
+import { Button, Separator, Spinner } from "@heroui/react";
 import { Comment, Eye, Heart, HeartFill, NodesRight } from "@gravity-ui/icons";
 import Follow from "../../components/Follow";
 import Profile from "../../components/Profile";

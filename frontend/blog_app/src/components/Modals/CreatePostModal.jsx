@@ -17,14 +17,12 @@ import TagInput from "./Inputs/TagInput";
 import TextArea from "../Inputs/TextArea";
 import { postSchema } from "../../schemas/postSchema";
 import { usePostStore } from "../../store/usePostStore";
-import { useNavigate } from "react-router-dom";
 import { useCategoryStore } from "../../store/useCategoryStore";
 
 const CreatePostModal = ({ className, nameButton, icon, headerTitle }) => {
   const { createPost } = usePostStore();
   const { categories, fetchCategories } = useCategoryStore();
   const fileInputRef = useRef(null);
-  const navigate = useNavigate();
   const [content, setContent] = useState("");
   const [title, setTitle] = useState("");
   const [category, setCategory] = useState("");
