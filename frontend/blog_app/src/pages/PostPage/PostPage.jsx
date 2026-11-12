@@ -1,20 +1,42 @@
-import { Button, Separator, Spinner } from "@heroui/react";
-import { Comment, Eye, Heart, NodesRight } from "@gravity-ui/icons";
+import { Button, Separator, Spinner, ToggleButton } from "@heroui/react";
+import { Comment, Eye, Heart, HeartFill, NodesRight } from "@gravity-ui/icons";
 import Follow from "../../components/Follow";
 import Profile from "../../components/Profile";
 import Image from "../../components/Image";
 import { usePostStore } from "../../store/usePostStore";
-import { useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import { timeAgo } from "../../utils";
+import { useAuthStore } from "../../store/useAuthStore";
 
 const PostPage = () => {
-  const { post, loading, fetchPostById } = usePostStore();
+  const { post, loading, fetchPostById, likePost } = usePostStore();
+  const { token, user } = useAuthStore();
+  const navigate = useNavigate();
+
   const { id } = useParams();
+  const [liking, setLiking] = useState(false);
+
+  const liked = post?.likedBy?.some(
+    (id) => id.toString() === user?._id?.toString(),
+  );
 
   useEffect(() => {
     fetchPostById(id);
   }, [id]);
+
+  const handleLike = async () => {
+    if (!token) return navigate("/login");
+    if (liking) return;
+    setLiking(true);
+    try {
+      await likePost(post._id);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLiking(false);
+    }
+  };
 
   if (loading)
     return (
@@ -86,9 +108,20 @@ const PostPage = () => {
                 <Button variant="ghost">
                   <Eye className="size-6 text-gray-500" />
                 </Button>
-                <Button variant="ghost">
-                  <Heart className="size-6 text-gray-500" />
+
+                <Button
+                  isSelected={liked}
+                  onPress={handleLike}
+                  isDisabled={liking}
+                  variant="ghost"
+                >
+                  {liked ? (
+                    <HeartFill className="size-6 text-red-500" />
+                  ) : (
+                    <Heart className="size-6 text-gray-500" />
+                  )}
                 </Button>
+
                 <Button variant="ghost">
                   <Comment className="size-6 text-gray-500" />
                 </Button>

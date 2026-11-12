@@ -1,57 +1,59 @@
-import { Camera, SealCheck } from "@gravity-ui/icons";
+import { Camera, EllipsisVertical, SealCheck } from "@gravity-ui/icons";
 import Banner from "../../assets/banner_author_profile.png";
 import Profile from "../../components/Profile";
-import Follow from "../../components/Follow";
 import TabsAuthors from "../../components/TabsAuthors";
 import Image from "../../components/Image";
 import { useAuthStore } from "../../store/useAuthStore";
 import { usePostStore } from "../../store/usePostStore";
-import { useEffect, useRef } from "react";
-import { Button, toast } from "@heroui/react";
+import { useEffect, useRef, useState } from "react";
+import { Button, Dropdown, Label, toast } from "@heroui/react";
 
 const ProfileInfo = () => {
-    const {user} = useAuthStore();
-    const {posts, fetchPosts } = usePostStore();
-    const {loadUser } = useAuthStore();
-    const fileInputRef = useRef(null);
+  const { user } = useAuthStore();
+  const { posts, fetchPosts } = usePostStore();
+  const { loadUser } = useAuthStore();
+  const fileInputRef = useRef(null);
+  const [open, setOpen] = useState(false);
 
-    const selectImage = (e) => {
-      const file = e.target.files[0];
-      if (!file) return;
-      const promesa = uploadImage(file);
-      toast.promise(promesa, {
-        loading: "Subiendo imagen",
-        success: "Avatar actualizado",
-        error: (err) => err.message,
-      });
-    };  
+  const selectImage = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const promesa = uploadImage(file);
+    toast.promise(promesa, {
+      loading: "Subiendo imagen",
+      success: "Avatar actualizado",
+      error: (err) => err.message,
+    });
+  };
 
-    const uploadImage = async (file) => {
-      if (!file) return;
-      const formData = new FormData();
-      formData.append("avatar", file);
+  const uploadImage = async (file) => {
+    if (!file) return;
+    const formData = new FormData();
+    formData.append("avatar", file);
 
-      
-        const token = localStorage.getItem("token");
-      const res = await fetch(`http://localhost:5000/api/auth/avatar`, {
-        method: "PUT",
-        headers: { Authorization: `Bearer ${token}` },
-        body: formData,
-      });
+    const token = localStorage.getItem("token");
+    const res = await fetch(`http://localhost:5000/api/auth/avatar`, {
+      method: "PUT",
+      headers: { Authorization: `Bearer ${token}` },
+      body: formData,
+    });
 
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message || "Error al subir la imagen");
-      console.log(data);
-      
-      await loadUser();
-      return data;
-        
-    };
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || "Error al subir la imagen");
+    console.log(data);
 
-    useEffect(() => { fetchPosts(); }, []);
+    await loadUser();
+    return data;
+  };
 
-    const myPost = posts.filter((p) => (p?.author?._id || p?.author) === user?._id);
-    
+  useEffect(() => {
+    fetchPosts();
+  }, []);
+
+  const myPost = posts.filter(
+    (p) => (p?.author?._id || p?.author) === user?._id,
+  );
+
   return (
     <div className="flex flex-col ml-5">
       {/* Banner */}
@@ -91,7 +93,19 @@ const ProfileInfo = () => {
           </div>
         </div>
 
-        <Follow className="button-outline-rounded" />
+        <Dropdown isOpen={open} onOpenChange={setOpen}>
+          <Button isIconOnly aria-label="Menu" variant="secondary">
+            <EllipsisVertical className="outline-none" />
+          </Button>
+          <Dropdown.Popover placement="bottom right">
+            <Dropdown.Menu>
+              <Dropdown.Item id="new-file" textValue="New file">
+                <Label>Change Password</Label>
+              </Dropdown.Item>              
+            </Dropdown.Menu>
+          </Dropdown.Popover>
+        </Dropdown>
+        
       </div>
 
       {/* Tabs My Profile */}
@@ -101,4 +115,3 @@ const ProfileInfo = () => {
 };
 
 export default ProfileInfo;
-

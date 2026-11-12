@@ -8,7 +8,8 @@ import {
   Persons,
   ThumbsUp,
   ThumbsUpFill,
-  Comment
+  Comment,
+  Eye
 } from "@gravity-ui/icons";
 import { Button, Label } from "@heroui/react";
 import Follow from "./Follow";
@@ -46,8 +47,7 @@ const TabsAuthors = ({posts,
                 isOpen={false} 
                 title={u.title}
                 alt={u.title}
-                />
-              
+                />              
               
                 <div className="flex flex-col">
                   <Label className="line-clamp-2 text-xl max-w-2xl text-ellipsis">
@@ -58,6 +58,10 @@ const TabsAuthors = ({posts,
                   </div>
                   <div className="flex justify-between mt-2 items-center">
                       <div className="flex items-center gap-5 text-lg">
+                        <div className="flex gap-2">
+                          <Eye className="size-4 text-gray-500" />
+                          <span className="text-muted text-xs">{u.views}</span>
+                        </div>
                         <div className="flex gap-2">
                           <Heart className="size-4 text-gray-500" />
                           <span className="text-muted text-xs">{u.likes}</span>

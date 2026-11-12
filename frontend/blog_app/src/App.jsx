@@ -18,6 +18,7 @@ import Page404 from './pages/404Page/Page404'
 import ProfileInfo from './pages/ProfilePage/ProfileInfo'
 import Blogs from './pages/Blogs/Blogs'
 import CategoryPage from './pages/CategoryPage/CategoryPage'
+import SearchPage from './pages/SearchPage/SearchPage'
 
 
 function App() {  
@@ -62,6 +63,7 @@ function App() {
           </Route>
           <Route path='/blogs' element={<Blogs />} />
           <Route path='/category/:slug' element={<CategoryPage />} />
+          <Route path="/search" element={<SearchPage />} />
           <Route path="*" element={<Page404/>}/>
         </Route>
 

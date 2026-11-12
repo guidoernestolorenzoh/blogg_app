@@ -97,4 +97,42 @@ export const usePostStore = create((set, get) => ({
       throw error;
     }
   },
+
+  likePost: async (id) => {
+    const token = useAuthStore.getState().token;
+    try {
+      const res = await fetch(`${API_URL}/posts/${id}/like`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Error al dar like");
+      set({
+        post: data,
+        posts: get().posts.map((p) => (p._id === id ? data : p)),
+      });
+      return data;
+    } catch (error) {
+      set({ error: error.message });
+      throw error;
+    }
+  },
+
+  searchResults: [],
+
+  searchPosts: async (query) => {
+    set({ loading: true, error: null });
+    try {
+      const res = await fetch(
+        `${API_URL}/posts/search?q=${encodeURIComponent(query)}`,
+      );
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Error al buscar");
+      set({ searchResults: data });
+    } catch (error) {
+      set({ error: error.message });
+    } finally {
+      set({ loading: false });
+    }
+  },
 }));

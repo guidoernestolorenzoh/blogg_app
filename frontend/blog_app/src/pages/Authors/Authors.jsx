@@ -1,15 +1,13 @@
-import { Button, Description, Label } from "@heroui/react";
-import { Persons, PencilToLine, HeartFill } from "@gravity-ui/icons";
+import { Button, Description, Label, Spinner } from "@heroui/react";
+import { Persons, PencilToLine, HeartFill, CircleMinusFill } from "@gravity-ui/icons";
 import Follow from "../../components/Follow";
 import Profile from "../../components/Profile";
 import { usePostStore } from "../../store/usePostStore";
 import { useEffect } from "react";
 import { Link } from "react-router-dom";
-import { useAuthStore } from "../../store/useAuthStore";
 
 const Authors = () => {
   const { posts, loading, fetchPosts } = usePostStore();
-  const { user } = useAuthStore();
   const autores = [
     ...new Map(
       posts.filter((p) => p.author).map((p) => [p.author._id, p.author]),
@@ -20,6 +18,21 @@ const Authors = () => {
     fetchPosts();
   }, []);
 
+  if (loading)
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Spinner size="xl" />
+      </div>
+    );
+    if (!posts)
+      return (
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="flex items-center justify-center gap-2">
+            <CircleMinusFill />
+            <span>No hay autores para mostrar</span>
+          </div>
+        </div>
+      );
   return (
     <div className="flex flex-col max-w-7xl mx-16">
       <h1 className="text-4xl font-semibold mt-2">Authors</h1>

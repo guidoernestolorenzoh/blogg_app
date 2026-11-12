@@ -56,7 +56,7 @@ const RightBar = () => {
   if (!posts)
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="flex gap-2">
+        <div className="flex items-center justify-center gap-2">
           <CircleMinusFill />
           <span>No hay posts para mostrar</span>
         </div>

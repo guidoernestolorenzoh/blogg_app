@@ -105,4 +105,33 @@ const getPostById = async (req, res) => {
   }
 };
 
-module.exports = { createPost, getPosts, getPostById };
+const searchPosts = async (req, res) => {
+  try {
+    const q = (req.query.q || "").trim();
+    if (!q) {
+      return res.status(400).json({ message: "Escribe algo para buscar" });
+    }
+
+    const safeQ = q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+    const posts = await Post.find({ 
+      status: "published",
+      $or: [
+        { title: { $regex: safeQ, $options: "i" } },
+        { content: { $regex: safeQ, $options: "i" } },
+      ], 
+    })
+      .populate("author", "name avatar bio title")
+      .populate("category", "name slug")
+      .sort({ createdAt: -1 })
+      .limit(20);
+
+    res.status(200).json(posts);
+  } catch (error) {    
+    res
+      .status(500)
+      .json({ message: "Error al buscar posts", error: error.message });
+  }
+};
+
+module.exports = { createPost, getPosts, getPostById, searchPosts };
