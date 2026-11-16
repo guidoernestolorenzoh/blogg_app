@@ -8,6 +8,7 @@ export const usePostStore = create((set, get) => ({
   posts: [],
   loading: false,
   error: null,
+  hasMore: true,
 
   fetchPostById: async (id) => {
     set({ post: null, loading: true, error: null });
@@ -49,20 +50,40 @@ export const usePostStore = create((set, get) => ({
     }
   },
 
-  fetchPosts: async () => {
-    set({ loading: true, error: null });
+  fetchPosts: async (page) => {
+    if (!page) {
+      set({ loading: true, error: null });
+      try {
+        const res = await fetch(`${API_URL}/posts`, {
+          method: "GET",
+        });
+        const data = await res.json();
+        if (!res.ok)
+          throw new Error(data.message || "Error al cargar los posts");
+
+        set({ posts: data });
+      } catch (error) {
+        set({ error: error.message });
+      } finally {
+        set({ loading: false });
+      }
+      return;
+    }
+
+    if (page === 1) set({ loading: true, error: null });
     try {
-      const res = await fetch(`${API_URL}/posts`, {
-        method: "GET",
-      });
+      const res = await fetch(`${API_URL}/posts?page=${page}&limit=6`);
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Error al cargar los posts");
-
-      set({ posts: data });
+      if (page === 1) {
+        set({ posts: data.posts, hasMore: data.hasMore });
+      } else {
+        set({ posts: [...get().posts, ...data.posts], hasMore: data.hasMore });
+      }
     } catch (error) {
       set({ error: error.message });
     } finally {
-      set({ loading: false });
+      if (page === 1) set({ loading: false });
     }
   },
 

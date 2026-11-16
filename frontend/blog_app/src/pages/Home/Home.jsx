@@ -1,4 +1,4 @@
-import { Button, Separator, Spinner, ToggleButton } from "@heroui/react";
+import { Button, Separator, Spinner } from "@heroui/react";
 import Follow from "../../components/Follow";
 import Profile from "../../components/Profile";
 import {

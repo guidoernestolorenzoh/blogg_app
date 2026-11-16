@@ -143,9 +143,9 @@ const RightBar = () => {
           {blogsOrdenados.map((u) => (
             <Link key={u._id} to={`/post/${u._id}`}>
               <li className="flex items-center justify-between my-2 mx-4 rounded-lg p-1">
-                <div className="flex gap-4 items-center">
+                <div className="flex gap-4 items-start">
                   <Profile
-                    className="rounded-lg"
+                    className="rounded-lg mt-1 h-13 w-13"
                     size="lg"
                     title={u.title}
                     alt={u.title}

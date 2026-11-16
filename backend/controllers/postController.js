@@ -12,13 +12,11 @@ const createPost = async (req, res) => {
         .json({ message: "Por favor, seleccione una categoria" });
     }
 
-    const existingCategory  = await Category.findById(category);
+    const existingCategory = await Category.findById(category);
     if (!existingCategory) {
-      return res
-        .status(400)
-        .json({ message: "No existe ninguna categoria" });
+      return res.status(400).json({ message: "No existe ninguna categoria" });
     }
-    
+
     const coverImage = req.file
       ? `${req.protocol}://${req.get("host")}/uploads/${req.file.filename}`
       : "";
@@ -40,14 +38,16 @@ const createPost = async (req, res) => {
     });
     await post.populate("author", "name avatar bio title");
     await post.populate("category", "name slug");
-    
+
     res.status(201).json({
       message: "Post creado satisfactoriamente!",
       post,
     });
   } catch (error) {
     if (error.name === "CastError") {
-      return res.status(400).json({ message: "La categoría seleccionada no es válida" });
+      return res
+        .status(400)
+        .json({ message: "La categoría seleccionada no es válida" });
     }
     if (error.name === "ValidationError") {
       return res.status(400).json({ message: error.message });
@@ -65,13 +65,30 @@ const createPost = async (req, res) => {
 
 const getPosts = async (req, res) => {
   try {
-    const posts = await Post.find({ status: "published" })
-      .populate("author", "name avatar bio title")
-      .populate("category", "name slug")
-      .sort({ createdAt: -1 });
+    if (!req.query.page || !req.query.limit) {
+      const posts = await Post.find({ status: "published" })
+        .populate("author", "name avatar bio title")
+        .populate("category", "name slug")
+        .sort({ createdAt: -1 });
+      return res.status(200).json(posts);
+    } 
 
-    res.status(200).json(posts);
-  } catch (error) {    
+    const page = parseInt(req.query.page);
+      const limit = parseInt(req.query.limit);
+      const skip = (page - 1) * limit;
+
+      const total = await Post.countDocuments({ status: "published" });
+      const totalPages = Math.ceil(total / limit);
+      const hasMore = page < totalPages;
+
+      const posts = await Post.find({ status: "published" })
+        .populate("author", "name avatar bio title")
+        .populate("category", "name slug")
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit);
+      return res.status(200).json({ posts, totalPages, hasMore });
+  } catch (error) {
     res
       .status(500)
       .json({ message: "Error al obtener los posts", error: error.message });
@@ -81,14 +98,8 @@ const getPosts = async (req, res) => {
 const getPostById = async (req, res) => {
   try {
     const post = await Post.findById(req.params.id)
-    .populate(
-      "author",
-      "name avatar bio title",
-    )
-    .populate(
-      "category",
-      "name slug",
-    )
+      .populate("author", "name avatar bio title")
+      .populate("category", "name slug");
 
     if (!post) {
       return res.status(404).json({ message: "No hay post para mostrar" });
@@ -114,12 +125,12 @@ const searchPosts = async (req, res) => {
 
     const safeQ = q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
-    const posts = await Post.find({ 
+    const posts = await Post.find({
       status: "published",
       $or: [
         { title: { $regex: safeQ, $options: "i" } },
         { content: { $regex: safeQ, $options: "i" } },
-      ], 
+      ],
     })
       .populate("author", "name avatar bio title")
       .populate("category", "name slug")
@@ -127,7 +138,7 @@ const searchPosts = async (req, res) => {
       .limit(20);
 
     res.status(200).json(posts);
-  } catch (error) {    
+  } catch (error) {
     res
       .status(500)
       .json({ message: "Error al buscar posts", error: error.message });

@@ -21,7 +21,8 @@ const Search = ({
       });
     }, 500);
     return () => clearTimeout(timer);
-  }, [search, navigate])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [search])
   
   const handleSubmit = (e) => {
     e.preventDefault();
