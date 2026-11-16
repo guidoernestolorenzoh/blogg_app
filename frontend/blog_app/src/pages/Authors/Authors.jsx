@@ -1,9 +1,15 @@
-import { Button, Description, Label, Spinner } from "@heroui/react";
-import { Persons, PencilToLine, HeartFill, CircleMinusFill } from "@gravity-ui/icons";
-import Follow from "../../components/Follow";
-import Profile from "../../components/Profile";
+import { Button, Card, Label, Spinner } from "@heroui/react";
+import {
+  Persons,
+  PencilToLine,
+  CircleMinusFill,
+  Eye,
+  Heart,
+  SealCheck,
+} from "@gravity-ui/icons";
 import { usePostStore } from "../../store/usePostStore";
 import { useEffect } from "react";
+import Image from "../../components/Image";
 import { Link } from "react-router-dom";
 
 const Authors = () => {
@@ -24,15 +30,15 @@ const Authors = () => {
         <Spinner size="xl" />
       </div>
     );
-    if (!posts)
-      return (
-        <div className="min-h-screen flex items-center justify-center">
-          <div className="flex items-center justify-center gap-2">
-            <CircleMinusFill />
-            <span>No hay autores para mostrar</span>
-          </div>
+  if (posts.length === 0)
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="flex items-center justify-center gap-2">
+          <CircleMinusFill />
+          <span>No hay autores para mostrar</span>
         </div>
-      );
+      </div>
+    );
   return (
     <div className="flex flex-col max-w-7xl mx-16">
       <h1 className="text-4xl font-semibold mt-2">Authors</h1>
@@ -42,7 +48,7 @@ const Authors = () => {
       </p>
 
       <div className="flex justify-center items-center">
-        <ul className="flex flex-wrap gap-2 mt-4">
+        <div className="grid w-full grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-9 mt-4">
           {autores.map((author) => {
             const postsDelAutor = posts.filter(
               (p) => p.author?._id === author._id,
@@ -52,62 +58,117 @@ const Authors = () => {
               (acc, p) => acc + (p.likes || 0),
               0,
             );
+            const totalViews = postsDelAutor.reduce(
+              (acc, p) => acc + (p.views || 0),
+              0,
+            );
             return (
-              <li
-                key={author._id}
-                className="flex items-center justify-between shrink-0 bg-zinc-100 max-w-lg rounded-4xl my-2 mx-4 px-8 py-6 dark:text-gray-300 dark:bg-zinc-900 border bg-linear-to-br from-accent/5 via-surface to-surface-secondary shadow-lg shadow-accent/5 dark:border-accent/10 dark:from-accent/10 dark:via-surface dark:to-accent/8 dark:shadow-accent/5"
-              >
-                <div className="flex gap-4 items-center">
-                  <div className="flex flex-col items-center space-y-4">
-                    <Profile
-                      user={author}
+              <Card key={author._id} className="shadow-lg p-0">
+                <div className="flex items-center flex-col justify-between my-4 rounded-lg px-4">
+                  {author?.avatar ? (
+                    <Image
                       src={author?.avatar}
-                      isOpen={false}
-                      className="text-5xl bg-blue-400 size-40 object-cover rounded-full text-white cursor-pointer"
+                      alt={author?.name}
+                      className="text-5xl ring-2 ring-white bg-blue-400 size-40 object-cover rounded-full text-white cursor-pointer"
                     />
-                    {/* Follow Button */} 
+                  ) : (
+                    <div className="size-40 rounded-full flex items-center justify-center bg-linear-to-br from-green-500 to-emerald-700 text-white text-6xl font-bold">
+                      {author?.name?.trim()?.[0]?.toUpperCase()}
+                    </div>
+                  )}
+                  <div className="space-y-3 flex justify-center items-center flex-col">
+                    <div className="mt-3 flex items-center gap-3">
+                      <Label className="cursor-pointer text-justify text-3xl font-bold">
+                        {author.name}
+                      </Label>
+                      <SealCheck className="size-6 text-blue-500 mt-1" />
+                    </div>
                     <div className="flex gap-2">
-                      <Follow className="w-20 px-4 py-2 max-w-36 bg-zinc-100 text-accent border border-blue-500 dark:bg-accent/10 dark:text-blue-400" />
+                      {/* Follow */}
+                      <div className="flex gap-3 cursor-pointer text-sm text-green-500 dark:text-green-300">
+                        <Button className="flex" variant="secondary">
+                          <Persons />
+                          <span>Follow</span>
+                        </Button>
+                      </div>
+
+                      {/* View Profile */}
                       <Link
                         to={`/author/${author._id}`}
                         className="w-full cursor-pointer text-sm text-green-500 dark:text-green-300"
                       >
-                        <Button className="w-20 bg-zinc-100 text-accent border border-blue-500 dark:bg-accent/10 dark:text-blue-400">
-                          Ver Perfil
-                        </Button>                        
+                        <Button
+                          className="flex flex-wrap gap-3"
+                          variant="secondary"
+                        >
+                          <Eye />
+                          <span>View Profile</span>
+                        </Button>
                       </Link>
                     </div>
-                  </div>
-                  <div className="flex flex-col">
-                    <Label className="text-3xl w-64 overflow-hidden text-ellipsis whitespace-nowrap">
-                      {author?.name}
-                    </Label>
-                    <Description>{author?.email}</Description>
-                    <span className="my-2 text-lg">{author?.role}</span>
-                    <div className="flex items-center justify-evenly text-lg gap-2">
-                      <div className="flex text-[#5893f1] items-center text-lg gap-2">
-                        <Persons />
-                        <span className="">6k</span>
-                      </div>
-                      <div className="flex text-[#EF4444] items-center text-lg gap-2">
-                        <HeartFill />
-                        <span className="">{totalLikes}</span>
-                      </div>
-                      <div className="flex text-[#6d3799] items-center text-lg gap-2">
-                        <PencilToLine />
-                        <span className="">{numPosts}</span>
+
+                    <div className="flex flex-col space-y-3">
+                      <p className="text-md text-muted text-justify max-w-lg px-4 line-clamp-3">
+                        {author?.bio}
+                      </p>
+                    </div>
+
+                    {/* views likes shares */}
+                    <div className="flex flex-col mt-2 ">
+                      <div className="flex items-center justify-evenly gap-1 text-lg">
+                        <div className="flex items-center">
+                          <Button
+                            variant="ghost"
+                            className="hover:bg-transparent hover:opacity-100"
+                          >
+                            <Persons className="size-5 text-gray-500" />
+                          </Button>
+                          <span className="text-sm text-muted">0</span>
+                        </div>
+                        <div className="flex items-center">
+                          <Button
+                            variant="ghost"
+                            className="hover:bg-transparent hover:opacity-100"
+                          >
+                            <Eye className="size-5 text-gray-500" />
+                          </Button>
+                          <span className="text-sm text-muted">
+                            {totalViews}
+                          </span>
+                        </div>
+                        <div className="flex items-center">
+                          <Button
+                            variant="ghost"
+                            className="hover:bg-transparent hover:opacity-100"
+                          >
+                            <Heart className="size-6 text-gray-500" />
+                          </Button>
+                          <span className="text-sm text-muted">
+                            {totalLikes}
+                          </span>
+                        </div>
+
+                        <div className="flex items-center">
+                          <Button
+                            variant="ghost"
+                            className="hover:bg-transparent hover:opacity-100"
+                          >
+                            <PencilToLine className="size-5 text-gray-500" />
+                          </Button>
+                          <span className="text-md text-muted">{numPosts}</span>
+                        </div>
                       </div>
                     </div>
-                    <p className="my-2 text-sm text-justify">{author.bio}</p>
                   </div>
                 </div>
-              </li>
+              </Card>
             );
           })}
-        </ul>
+        </div>
       </div>
     </div>
   );
 };
 
 export default Authors;
+
