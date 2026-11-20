@@ -63,8 +63,8 @@ const Authors = () => {
               0,
             );
             return (
-              <Card key={author._id} className="shadow-lg p-0">
-                <div className="flex items-center flex-col justify-between my-4 rounded-lg px-4">
+              <Card key={author._id} className="shadow-lg p-0 h-full flex flex-col">
+                <div className="flex items-center flex-col flex-1 my-4 rounded-lg px-4">
                   {author?.avatar ? (
                     <Image
                       src={author?.avatar}
@@ -76,14 +76,19 @@ const Authors = () => {
                       {author?.name?.trim()?.[0]?.toUpperCase()}
                     </div>
                   )}
-                  <div className="space-y-3 flex justify-center items-center flex-col">
+                  <div className="flex justify-center items-center flex-col flex-1">
                     <div className="mt-3 flex items-center gap-3">
                       <Label className="cursor-pointer text-justify text-3xl font-bold">
                         {author.name}
                       </Label>
                       <SealCheck className="size-6 text-blue-500 mt-1" />
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex mb-3 items-center gap-3">
+                      <Label className="cursor-pointer text-justify text-muted text-lg">
+                        {author.title}
+                      </Label>
+                    </div>
+                    <div className="flex gap-2 mb-3">
                       {/* Follow */}
                       <div className="flex gap-3 cursor-pointer text-sm text-green-500 dark:text-green-300">
                         <Button className="flex" variant="secondary">
@@ -108,13 +113,13 @@ const Authors = () => {
                     </div>
 
                     <div className="flex flex-col space-y-3">
-                      <p className="text-md text-muted text-justify max-w-lg px-4 line-clamp-3">
+                      <p className="text-md text-muted text-justify max-w-lg px-4">
                         {author?.bio}
                       </p>
                     </div>
 
                     {/* views likes shares */}
-                    <div className="flex flex-col mt-2 ">
+                    <div className="flex flex-col mt-auto ">
                       <div className="flex items-center justify-evenly gap-1 text-lg">
                         <div className="flex items-center">
                           <Button
@@ -123,7 +128,7 @@ const Authors = () => {
                           >
                             <Persons className="size-5 text-gray-500" />
                           </Button>
-                          <span className="text-sm text-muted">0</span>
+                          <span className="text-sm text-muted"></span>
                         </div>
                         <div className="flex items-center">
                           <Button

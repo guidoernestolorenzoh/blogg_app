@@ -6,6 +6,7 @@ const Input = ({
   value,
   onChange,
   placeholder,
+  isDisable,
   className,
   onBlur,
   onKeyDown,
@@ -23,6 +24,7 @@ const Input = ({
         value={value}
         onChange={onChange}
         required
+        disabled={isDisable}
         placeholder={placeholder}
         className={className}
         onBlur={onBlur}

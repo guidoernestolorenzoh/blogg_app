@@ -1,4 +1,9 @@
-import { Camera, EllipsisVertical, SealCheck } from "@gravity-ui/icons";
+import {
+  Camera,
+  CircleFill,
+  EllipsisVertical,
+  SealCheck,
+} from "@gravity-ui/icons";
 import Banner from "../../assets/banner_author_profile.png";
 import Profile from "../../components/Profile";
 import TabsAuthors from "../../components/TabsAuthors";
@@ -6,7 +11,7 @@ import Image from "../../components/Image";
 import { useAuthStore } from "../../store/useAuthStore";
 import { usePostStore } from "../../store/usePostStore";
 import { useEffect, useRef, useState } from "react";
-import { Button, Dropdown, Label, toast } from "@heroui/react";
+import { Button, Chip, Dropdown, Label, toast } from "@heroui/react";
 
 const ProfileInfo = () => {
   const { user } = useAuthStore();
@@ -90,26 +95,37 @@ const ProfileInfo = () => {
               </div>
             </div>
             <span className="text-md font-light text-muted">{user?.title}</span>
+            <span className="text-xs font-light text-muted">{user?.email}</span>
           </div>
         </div>
 
-        <Dropdown isOpen={open} onOpenChange={setOpen}>
-          <Button isIconOnly aria-label="Menu" variant="secondary">
-            <EllipsisVertical className="outline-none" />
-          </Button>
-          <Dropdown.Popover placement="bottom right">
-            <Dropdown.Menu>
-              <Dropdown.Item id="new-file" textValue="New file">
-                <Label>Change Password</Label>
-              </Dropdown.Item>              
-            </Dropdown.Menu>
-          </Dropdown.Popover>
-        </Dropdown>
-        
+        <div className="flex items-center">
+          <Chip
+            variant="tertiary"
+            className="text-accent-soft-foreground gap-1 border-3 mr-2 border-accent rounded-full"
+          >
+            <CircleFill width={6} className="animate-ping" />
+            <Chip.Label className="text-sm capitalize">
+              {user?.role || ""}
+            </Chip.Label>
+          </Chip>
+          <Dropdown isOpen={open} onOpenChange={setOpen}>
+            <Button isIconOnly aria-label="Menu" variant="secondary">
+              <EllipsisVertical className="outline-none" />
+            </Button>
+            <Dropdown.Popover placement="bottom right">
+              <Dropdown.Menu>
+                <Dropdown.Item id="new-file" textValue="New file">
+                  <Label>Change Password</Label>
+                </Dropdown.Item>
+              </Dropdown.Menu>
+            </Dropdown.Popover>
+          </Dropdown>
+        </div>
       </div>
 
       {/* Tabs My Profile */}
-      <TabsAuthors about={user?.bio} posts={myPost} />
+      <TabsAuthors showPersonalInfo about={user?.bio} posts={myPost} />
     </div>
   );
 };

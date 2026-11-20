@@ -1,5 +1,5 @@
 const express = require("express");
-const { register, login, getMe, uploadAvatar } = require("../controllers/authController");
+const { register, login, getMe, uploadAvatar, updateProfile } = require("../controllers/authController");
 const { protect } = require("../middleware/auth");
 const {storage, fileFilter} = require('../config/multer');
 const multer = require('multer');
@@ -13,6 +13,7 @@ router.post('/register', register);
 router.post('/login', login);
 router.get('/me', protect, getMe)
 router.put("/avatar", protect, uploads.single("avatar"), uploadAvatar);
+router.put("/profile", protect, updateProfile);
 
 
   

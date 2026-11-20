@@ -9,110 +9,267 @@ import {
   ThumbsUp,
   ThumbsUpFill,
   Comment,
-  Eye
+  Eye,
+  FloppyDisk,
+  CircleFill,
 } from "@gravity-ui/icons";
-import { Button, Label } from "@heroui/react";
+import { Button, Chip, Label, toast } from "@heroui/react";
 import Follow from "./Follow";
 import Image from "./Image";
+import Input from "../../src/components/Inputs/Input";
+import { useAuthStore } from "../store/useAuthStore";
+import { profileSchema } from "../schemas/profileSchema";
 
-
-const TabsAuthors = ({posts,
-  following=followers,
+const TabsAuthors = ({
+  posts,
+  following = followers,
   comments = commentsData,
-  about}) => {
-  const [activeTab, setActiveTab] = useState("posts");
+  about,
+  showPersonalInfo = false,
+  showAbout = false,
+}) => {
+  const [activeTab, setActiveTab] = useState(showPersonalInfo ? "personalInfo" : "posts", showAbout ? "about" : "");
   const [sortBy, setSortBy] = useState("short");
   const [isOpen, setIsOpen] = useState(false);
+  const [form, setForm] = useState({ name: "", title: "", bio: "" });
+  const [saving, setSaving] = useState(false);
+  const [errors, setErrors] = useState({});
   const dropdownRef = useRef(null);
+  const { user, loadUser } = useAuthStore();
+
+  const handleChange = (field) => (e) =>
+    setForm((prev) => ({ ...prev, [field]: e.target.value }));
+
+  const handleBlur = (field) => () => {
+    const result = profileSchema.shape[field].safeParse(form[field]);
+    setErrors((prev) => ({
+      ...prev,
+      [field]: result.success
+        ? undefined
+        : result.error.issues.map((i) => i.message),
+    }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    setSaving(true);
+
+    const promise = (async () => {
+      const token = localStorage.getItem("token");
+      const res = await fetch("http://localhost:5000/api/auth/profile", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(form),
+      });
+      const data = await res.json();
+      if (!res.ok)
+        throw new Error(data.message || "Error al actualizar el perfil");
+
+      await loadUser();
+      return data;
+    })();
+
+    toast.promise(promise, {
+      loading: "Guardando cambios",
+      success: "Perfil actualizado",
+      error: (err) => err.message,
+    });
+
+    try {
+      await promise;
+    } catch {
+      /* el toast ya mostró el error */
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  useEffect(() => {
+    if (user) {
+      setForm({
+        name: user.name || "",
+        title: user.title || "",
+        bio: user.bio || "",
+      });
+    }
+  }, [user]);
 
   const tabs = [
+    ...(showPersonalInfo
+    ? [
+        {
+          id: "personalInfo",
+          label: "Personal Information",
+          content: (
+            <form noValidate onSubmit={handleSubmit} className="flex flex-col gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <label className="flex flex-col gap-2 w-full text-sm font-medium text-gray-400">
+                <div className="flex gap-1">
+                  Full Name
+                  <span className="text-red-500">*</span>
+                </div>
+                <div className="relative w-full">
+                  <Input
+                    type="text"
+                    value={form.name}
+                    onChange={handleChange("name")}
+                    onBlur={handleBlur("name")}
+                    required
+                    placeholder="Full name"
+                    className="transition-all w-full rounded-full border outline-0 border-gray-200 bg-white py-3.5 pl-6 text-sm text-gray-700 dark:bg-zinc-900 dark:border dark:border-zinc-700 dark:text-gray-200 dark:outline-0"
+                  />
+                  {errors.name?.[0] && (
+                    <p className="text-sm mt-3 ml-3 text-red-500">
+                      {errors.name[0]}
+                    </p>
+                  )}
+                </div>
+              </label>
+
+              <label className="flex flex-col gap-2 w-full text-sm font-medium text-gray-400">
+                <div className="flex gap-1">
+                  Title                 
+                </div>
+                <div className="relative w-full">
+                  <Input
+                    type="text"
+                    name="title"
+                    value={form.title}
+                    onChange={handleChange("title")}
+                    placeholder="Ej. Fotógrafo"
+                    className="transition-all w-full rounded-full border outline-0 border-gray-200 bg-white py-3.5 pl-6 text-sm text-gray-700 dark:bg-zinc-900 dark:border dark:border-zinc-700 dark:text-gray-200 dark:outline-0"
+                  />
+                </div>
+              </label>
+            </div>
+
+            <div className="">
+              {/* Your Bio */}
+              <label className="flex flex-col gap-2 text-sm font-medium text-gray-400">
+                <div className="flex gap-1">Bio</div>
+                <textarea
+                  name="bio"
+                  value={form.bio}
+                  onChange={handleChange("bio")}
+                  rows={4}
+                  placeholder="Cuéntanos sobre ti..."
+                  className="w-full rounded-2xl border border-gray-200 bg-white p-4 text-sm text-gray-700 outline-none focus:ring-2 focus:ring-blue-400 dark:bg-zinc-900 dark:border dark:border-zinc-700 dark:text-gray-200"
+                />
+              </label>
+
+            </div>
+              {/* button submit */}
+              <Button isDisabled={saving} type="submit">
+                <FloppyDisk />
+                <span>{saving ? "Guardando..." : "Guardar"}</span>
+              </Button>
+            </form>
+          ),
+        },
+      ]
+    : []),
     {
       id: "posts",
       label: "Posts",
       content: (
         <div className="">
-            {/* list uploaded blogs */}
-        <ul className="flex flex-col gap-2">
-          {posts && (posts.map((u) => (
-            <li
-              key={u._id}
-              className="flex items-center justify-between my-2 mx-4 rounded-lg p-1"
-            >
-              <div className="flex gap-4 items-center">
-              <Profile 
-                user={u} 
-                src={u?.coverImage} 
-                className="rounded-lg" 
-                size="lg" 
-                isOpen={false} 
-                title={u.title}
-                alt={u.title}
-                />              
-              
-                <div className="flex flex-col">
-                  <Label className="line-clamp-2 text-xl max-w-2xl text-ellipsis">
-                  {u?.title}
-                  </Label>
-                  <div className="text-lg font-light dark:text-gray-200">
-                  {formatDate(u?.createdAt)}
-                  </div>
-                  <div className="flex justify-between mt-2 items-center">
-                      <div className="flex items-center gap-5 text-lg">
-                        <div className="flex gap-2">
-                          <Eye className="size-4 text-gray-500" />
-                          <span className="text-muted text-xs">{u.views}</span>
-                        </div>
-                        <div className="flex gap-2">
-                          <Heart className="size-4 text-gray-500" />
-                          <span className="text-muted text-xs">{u.likes}</span>
-                        </div>
-                        <div className="flex gap-2">
-                          <Comment className="size-4 text-gray-500" />
-                          <span className="text-muted text-xs">{u.comments}</span>
-                        </div>
-                        <div className="flex gap-2">
-                          <NodesRight className="size-4 text-gray-500" />
-                          <span className="text-muted text-xs">{u.shares}</span>
+          {/* list uploaded blogs */}
+          <ul className="flex flex-col gap-2">
+            {posts &&
+              posts.map((u) => (
+                <li
+                  key={u._id}
+                  className="flex items-center justify-between my-2 mx-4 rounded-lg p-1"
+                >
+                  <div className="flex gap-4 items-center">
+                    <Profile
+                      user={u}
+                      src={u?.coverImage}
+                      className="rounded-lg"
+                      size="lg"
+                      isOpen={false}
+                      title={u.title}
+                      alt={u.title}
+                    />
+
+                    <div className="flex flex-col">
+                      <Label className="line-clamp-2 text-xl max-w-2xl text-ellipsis">
+                        {u?.title}
+                      </Label>
+                      <div className="text-lg font-light dark:text-gray-200">
+                        {formatDate(u?.createdAt)}
+                      </div>
+                      <div className="flex justify-between mt-2 items-center">
+                        <div className="flex items-center gap-5 text-lg">
+                          <div className="flex gap-2">
+                            <Eye className="size-4 text-gray-500" />
+                            <span className="text-muted text-xs">
+                              {u.views}
+                            </span>
+                          </div>
+                          <div className="flex gap-2">
+                            <Heart className="size-4 text-gray-500" />
+                            <span className="text-muted text-xs">
+                              {u.likes}
+                            </span>
+                          </div>
+                          <div className="flex gap-2">
+                            <Comment className="size-4 text-gray-500" />
+                            <span className="text-muted text-xs">
+                              {u.comments}
+                            </span>
+                          </div>
+                          <div className="flex gap-2">
+                            <NodesRight className="size-4 text-gray-500" />
+                            <span className="text-muted text-xs">
+                              {u.shares}
+                            </span>
+                          </div>
                         </div>
                       </div>
                     </div>
-                </div>
-              </div>
-            </li>
-          )))}
-        </ul>
+                  </div>
+                </li>
+              ))}
+          </ul>
         </div>
       ),
     },
+    ...(showAbout
+      ? [
     {
       id: "about",
       label: "About",
       content: (
         <div className="flex flex-col my-4 gap-4">
           <h1 className="text-4xl font-semibold mb-4">About me</h1>
-          
-          <Image className="object-cover rounded-2xl h-130 w-full mb-4" src="https://static.vecteezy.com/system/resources/previews/075/317/752/non_2x/a-man-sitting-at-a-desk-with-a-map-and-a-computer-photo.jpg" />
-        
-          <p className="text-justify text-lg">
-          {about}
-          </p>
+
+          {/* <Image
+            className="object-cover rounded-2xl h-130 w-full mb-4"
+            src="https://static.vecteezy.com/system/resources/previews/075/317/752/non_2x/a-man-sitting-at-a-desk-with-a-map-and-a-computer-photo.jpg"
+          /> */}
+
+          <p className="text-justify text-lg">{about}</p>
 
           {/* followers following */}
           <div className="flex items-center gap-2">
             <div className="flex text-muted items-center text-lg gap-2">
-                <Persons />
-                <span className="">5k Followers</span>
+              <Persons />
+              <span className="">5k Followers</span>
             </div>
             <span className="text-muted"> - </span>
             <div className="flex text-muted items-center text-lg gap-2">
-                <Persons />
-                <span className="">5k Following</span>
+              <Persons />
+              <span className="">5k Following</span>
             </div>
-
           </div>
         </div>
       ),
-    },
+    }] : []),
     {
       id: "following",
       label: "Following",

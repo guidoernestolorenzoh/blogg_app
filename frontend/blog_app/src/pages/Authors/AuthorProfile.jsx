@@ -46,7 +46,7 @@ const AuthorProfile = () => {
       </div>
 
       {/* Tabs Authors */}
-      <TabsAuthors posts={myPost} about={autor?.bio}/>
+      <TabsAuthors showAbout posts={myPost} about={autor?.bio}/>
     </div>
   );
 };

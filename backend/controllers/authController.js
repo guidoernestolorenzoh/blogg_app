@@ -31,6 +31,37 @@ const register = async (req, res) => {
   }
 };
 
+const updateProfile  = async (req, res) => {
+  try {
+    const { name, bio, title } = req.body;
+
+    if (name !== undefined && !name.trim()) {
+      return res
+        .status(400)
+        .json({ message: "El nombre no puede estar vacio" });
+    }
+
+    const user = req.user;
+
+    if (name !== undefined) user.name = name.trim();
+    if (bio !== undefined) user.bio = bio;
+    if (title !== undefined) user.title = title;
+
+    const updated = await user.save();
+
+    res
+      .status(200)
+      .json({
+        message: "Perfil actualizado satisfactoriamente!",
+        user:updated,
+      });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Error al actualizar el perfil", error: error.message });
+  }
+};
+
 const login = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -61,18 +92,13 @@ const login = async (req, res) => {
 
 const uploadAvatar = async (req, res) => {
   try {
-    // 1. Si multer no dejó archivo, no hay nada que guardar
     if (!req.file) {
       return res.status(400).json({ message: "No se envió ninguna imagen" });
     }
 
-    // 2. req.user YA viene de protect, no hay que buscar el token de nuevo
     req.user.avatar = `${req.protocol}://${req.get("host")}/uploads/${req.file.filename}`;
 
-    // 3. Guardar ese cambio en la base de datos
     await req.user.save();
-
-    // 4. Responder, que es lo que faltaba en tu versión
     res.json({ message: "Avatar actualizado", user: req.user });
   } catch (error) {
     res.status(500).json({ message: "Error al subir el avatar", error: error.message });
@@ -84,4 +110,4 @@ const getMe = async (req, res) => {
     res.json(req.user);
 }
 
-module.exports = {register, login, uploadAvatar, getMe };
+module.exports = {register, login, uploadAvatar, getMe, updateProfile };
