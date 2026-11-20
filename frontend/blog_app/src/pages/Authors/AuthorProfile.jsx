@@ -39,6 +39,7 @@ const AuthorProfile = () => {
               
             </div>
             <span className="text-md font-light text-muted">{autor?.title}</span>
+            <span className="text-md font-light text-muted">{autor?.email}</span>
           </div>
         </div>
 

@@ -119,6 +119,44 @@ export const usePostStore = create((set, get) => ({
     }
   },
 
+  updatePost: async (id, postData) => {
+    const token = useAuthStore.getState().token;
+
+    try {
+      const formData = new FormData();
+      formData.append("title", postData.title);
+      formData.append("content", postData.content);
+      formData.append("category", postData.category);
+
+      postData.tags?.forEach((tag) => formData.append("tags", tag));
+      if (postData.coverImage instanceof File) {
+        formData.append("coverImage", postData.coverImage);
+      }
+      if (postData.status !== undefined)
+        formData.append("status", postData.status);
+
+      const res = await fetch(`${API_URL}/posts/${id}`, {
+        method: "PUT",
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData,
+      });
+
+      const data = await res.json();
+      if (!res.ok)
+        throw new Error(data.message || "Error al actualizar el post");
+
+      set({
+        post: get().post?._id === id ? data.post : get().post,
+        posts: get().posts.map((p) => (p._id === id ? data.post : p)),
+      });
+
+      return data.post;
+    } catch (error) {
+      set({ error: error.message });
+      throw error;
+    }
+  },
+
   likePost: async (id) => {
     const token = useAuthStore.getState().token;
     try {

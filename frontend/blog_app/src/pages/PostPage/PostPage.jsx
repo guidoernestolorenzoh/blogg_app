@@ -1,5 +1,13 @@
-import { Button, Separator, Spinner } from "@heroui/react";
-import { Comment, Eye, Heart, HeartFill, NodesRight } from "@gravity-ui/icons";
+import { Button, Dropdown, Label, Separator, Spinner } from "@heroui/react";
+import {
+  Comment,
+  EllipsisVertical,
+  Eye,
+  Heart,
+  HeartFill,
+  NodesRight,
+  PencilToLine,
+} from "@gravity-ui/icons";
 import Follow from "../../components/Follow";
 import Profile from "../../components/Profile";
 import Image from "../../components/Image";
@@ -8,6 +16,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { timeAgo } from "../../utils";
 import { useAuthStore } from "../../store/useAuthStore";
+import CreatePostModal from "../../components/Modals/CreatePostModal";
 
 const PostPage = () => {
   const { post, loading, fetchPostById, likePost } = usePostStore();
@@ -16,10 +25,17 @@ const PostPage = () => {
 
   const { id } = useParams();
   const [liking, setLiking] = useState(false);
+  const [isEditOpen, setIsEditOpen] = useState(false);
+
+  const [open, setOpen] = useState(false);
 
   const liked = post?.likedBy?.some(
     (id) => id.toString() === user?._id?.toString(),
   );
+
+  const canEdit = user?.role === "admin" || (user?.role === "writer" &&
+    post?.author?._id?.toString() === user?._id?.toString());
+
 
   useEffect(() => {
     fetchPostById(id);
@@ -76,7 +92,37 @@ const PostPage = () => {
             </div>
           </div>
 
-          <Follow />
+          <div className="items-center flex gap-2">
+            <Follow />
+            {canEdit && (
+                <Dropdown isOpen={open} onOpenChange={setOpen}>
+                  <Button
+                    isIconOnly
+                    size="lg"
+                    aria-label="Menu"
+                    variant="secondary"
+                    className="bg-transparent"
+                  >
+                    <EllipsisVertical className="outline-none" />
+                  </Button>
+                  <Dropdown.Popover placement="bottom right">
+                    <Dropdown.Menu>
+                      <Dropdown.Item id="edit-post" textValue="Edit Post" onPress={() => setIsEditOpen(true)}>
+                        <Label>Edit Post</Label>
+                      </Dropdown.Item>
+                    </Dropdown.Menu>
+                  </Dropdown.Popover>
+                </Dropdown>
+              )}
+              <CreatePostModal
+                icon={<PencilToLine/>}
+                post={post}
+                isOpen={isEditOpen}
+                onOpenChange={setIsEditOpen}
+                headerTitle="Edit Post"
+              />
+
+          </div>
         </div>
 
         <div className="my-2">

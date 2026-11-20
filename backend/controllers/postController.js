@@ -1,3 +1,4 @@
+const mongoose = require("mongoose");
 const Post = require("../models/Post");
 const Category = require("../models/Category");
 const { generarExcerpt } = require("../utils/text");
@@ -36,7 +37,7 @@ const createPost = async (req, res) => {
       tags,
       author: req.user._id,
     });
-    await post.populate("author", "name avatar bio title");
+    await post.populate("author", "name avatar bio title email");
     await post.populate("category", "name slug");
 
     res.status(201).json({
@@ -63,11 +64,89 @@ const createPost = async (req, res) => {
   }
 };
 
+const updatePost = async (req, res) => {
+  try {
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(404).json({ message: "Post no encontrado" });
+    }
+    
+    const { title, content, category, status } = req.body;
+
+    if (!title || !title.trim() || !content || !content.trim()) {
+      return res
+        .status(400)
+        .json({ message: "Por favor, rellene los campos" });
+    }
+    
+    if (!category) {
+      return res
+        .status(400)
+        .json({ message: "Por favor, seleccione una categoria" });
+    }
+
+    const existing = await Post.findById(req.params.id);
+      if (!existing) return res.status(404).json({ message: "Post no encontrado" });
+      if (existing.author.toString() !== req.user._id.toString() && req.user.role !== "admin") {
+        return res.status(403).json({ message: "No tienes permiso para editar este post" });
+      }
+
+    const existingCategory = await Category.findById(category);
+    if (!existingCategory) {
+      return res.status(400).json({ message: "No existe ninguna categoria" });
+    }
+
+    const excerpt = generarExcerpt(content, 3);
+
+    const updateData = {
+      title: title.trim(),
+      content: content.trim(),
+      excerpt,
+      category      
+    };
+    if (req.body.status !== undefined) {
+      updateData.status = req.body.status;
+    }
+    if (req.body.tags !== undefined) {
+      updateData.tags = Array.isArray(req.body.tags) ? req.body.tags : [req.body.tags];
+    }
+    if (req.file) {
+      updateData.coverImage = `${req.protocol}://${req.get("host")}/uploads/${req.file.filename}`;
+    }
+    
+    const post = await Post.findByIdAndUpdate(req.params.id, updateData, { new: true, runValidators: true });
+    
+    await post.populate("author", "name avatar bio title email");
+    await post.populate("category", "name slug");
+    
+    res.status(200).json({
+      message: "Post actualizado satisfactoriamente!",
+      post,
+    });
+  } catch (error) {
+    if (error.name === "CastError") {
+      return res
+        .status(400)
+        .json({ message: "La categoría seleccionada no es válida" });
+    }
+    if (error.name === "ValidationError") {
+      return res.status(400).json({ message: error.message });
+    }
+    if (error.code === 11000) {
+      return res
+        .status(400)
+        .json({ message: "Ya existe un post con ese título" });
+    }
+    res
+      .status(500)
+      .json({ message: "Error al actualizar el post", error: error.message });
+  }
+};
+
 const getPosts = async (req, res) => {
   try {
     if (!req.query.page || !req.query.limit) {
       const posts = await Post.find({ status: "published" })
-        .populate("author", "name avatar bio title")
+        .populate("author", "name avatar bio title email")
         .populate("category", "name slug")
         .sort({ createdAt: -1 });
       return res.status(200).json(posts);
@@ -82,7 +161,7 @@ const getPosts = async (req, res) => {
       const hasMore = page < totalPages;
 
       const posts = await Post.find({ status: "published" })
-        .populate("author", "name avatar bio title")
+        .populate("author", "name avatar bio title email")
         .populate("category", "name slug")
         .sort({ createdAt: -1 })
         .skip(skip)
@@ -98,7 +177,7 @@ const getPosts = async (req, res) => {
 const getPostById = async (req, res) => {
   try {
     const post = await Post.findById(req.params.id)
-      .populate("author", "name avatar bio title")
+      .populate("author", "name avatar bio title email")
       .populate("category", "name slug");
 
     if (!post) {
@@ -132,7 +211,7 @@ const searchPosts = async (req, res) => {
         { content: { $regex: safeQ, $options: "i" } },
       ],
     })
-      .populate("author", "name avatar bio title")
+      .populate("author", "name avatar bio title email")
       .populate("category", "name slug")
       .sort({ createdAt: -1 })
       .limit(20);
@@ -145,4 +224,4 @@ const searchPosts = async (req, res) => {
   }
 };
 
-module.exports = { createPost, getPosts, getPostById, searchPosts };
+module.exports = { createPost, getPosts, getPostById, searchPosts, updatePost };

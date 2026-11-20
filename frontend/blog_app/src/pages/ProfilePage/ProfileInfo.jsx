@@ -95,7 +95,7 @@ const ProfileInfo = () => {
               </div>
             </div>
             <span className="text-md font-light text-muted">{user?.title}</span>
-            <span className="text-xs font-light text-muted">{user?.email}</span>
+            <span className="text-md font-light text-muted">{user?.email}</span>
           </div>
         </div>
 

@@ -19,8 +19,9 @@ import { postSchema } from "../../schemas/postSchema";
 import { usePostStore } from "../../store/usePostStore";
 import { useCategoryStore } from "../../store/useCategoryStore";
 
-const CreatePostModal = ({ className, nameButton, icon, headerTitle }) => {
-  const { createPost } = usePostStore();
+const CreatePostModal = ({ className, nameButton, icon, headerTitle, post, isOpen, onOpenChange }) => {
+  const isEditing = Boolean(post);
+  const { createPost, updatePost } = usePostStore();
   const { categories, fetchCategories } = useCategoryStore();
   const fileInputRef = useRef(null);
   const [content, setContent] = useState("");
@@ -44,16 +45,46 @@ const CreatePostModal = ({ className, nameButton, icon, headerTitle }) => {
     fetchCategories();
   }, []);
 
-  const resetForm = () => {
-    setTitle("");
-    setContent("");
-    setCategory("");
+  useEffect(() => {
+    if (!post) return;
+    setTitle(post.title || "");
+    setContent(post.content || "");
+    setCategory(post.category?._id || post.category || "");
+    setPostData((prev) => ({
+      ...prev,
+      tags: (post.tags || []).map((t, i) => ({
+        id: i,
+        name: typeof t === "string" ? t : t.name,
+      })),
+    }));
     setCoverImage("");
-    setPostData((prev) => ({ ...prev, tags: [] }));
+  }, [post]);
+  
+  const resetForm = () => {
+    if (isEditing && post) {
+      setTitle(post.title || "");
+      setContent(post.content || "");
+      setCategory(post.category?._id || post.category || "");
+      setPostData((prev) => ({
+        ...prev,
+        tags: (post.tags || []).map((t, i) => ({
+          id: i,
+          name: typeof t === "string" ? t : t.name,
+        })),
+      }));
+    } else {
+      setTitle("");
+      setContent("");
+      setCategory("");
+      setCoverImage("");
+      setPostData((prev) => ({ ...prev, tags: [] }));
+      setErrors({});
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+    setCoverImage("");
     setErrors({});
-    if (fileInputRef.current) fileInputRef.current.value = "";
   };
-
+  
   const handleSubmit = async (e, close) => {
     e?.preventDefault?.();
 
@@ -73,19 +104,33 @@ const CreatePostModal = ({ className, nameButton, icon, headerTitle }) => {
     setErrors({});
     setLoading(true);
     try {
-      const promise = createPost({
-        ...result.data,
-        status: "published",
-        coverImage,
-      });
-      toast.promise(promise, {
-        loading: "Creating post...",
-        success: "Post created successfully",
-        error: (err) => err.message,
-      });
-      await promise;
+      if (isEditing) {
+        const promise = updatePost(post._id, {
+          ...result.data,
+          status: "published",
+          coverImage,
+        });
+        toast.promise(promise, {
+          loading: "Updating post...",
+          success: "Post updated successfully",
+          error: (err) => err.message,
+        });
+        await promise;
+      } else {
+        const promise = createPost({
+          ...result.data,
+          status: "published",
+          coverImage,
+        });
+        toast.promise(promise, {
+          loading: "Creating post...",
+          success: "Post created successfully",
+          error: (err) => err.message,
+        });
+        await promise;
+      }
       resetForm();
-      close();
+      close();      
     } catch (err) {
       console.error(err);
     } finally {
@@ -129,11 +174,13 @@ const CreatePostModal = ({ className, nameButton, icon, headerTitle }) => {
   };
 
   return (
-    <Modal>
-      <Button variant="secondary" className={className}>
-        {icon}
-        {nameButton}
-      </Button>
+    <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
+      {!isEditing && (
+        <Button variant="secondary" className={className}>
+          {icon}
+          {nameButton}
+        </Button>
+      )}
       <Modal.Backdrop>
         <Modal.Container placement="auto">
           <Modal.Dialog className="max-w-md sm:max-w-xl">
@@ -311,7 +358,7 @@ const CreatePostModal = ({ className, nameButton, icon, headerTitle }) => {
                     isDisabled={loading}
                     className="w-full"
                   >
-                    Post Article
+                    {isEditing ? "Edit Post" : "Create Post"}
                   </Button>
                 </Modal.Footer>
               </>
