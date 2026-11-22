@@ -1,4 +1,4 @@
-import {BookOpen, ShieldKeyhole, ArrowRightFromSquare, CircleLetterA, CircleLetterB, CircleLetterC, PlanetEarth, Books, QuoteOpen, Book, PersonFill } from "@gravity-ui/icons";
+import {BookOpen, ShieldKeyhole, ArrowRightFromSquare, CircleLetterA, CircleLetterB, CircleLetterC, PlanetEarth, Books, QuoteOpen, Book, PersonFill, FileText } from "@gravity-ui/icons";
 import React from "react";
 
 export function timeAgo(date) {
@@ -120,9 +120,10 @@ const NAVBARITEMS = [
 ];
 
 const AVATARITEMS = [
-    { id: 1, icon: PersonFill, label: "My Profile" },
-    { id: 2, icon: ShieldKeyhole, label: "Admin Panel" },
-    { id: 3, icon: ArrowRightFromSquare, label: "Log out" }   
+    { id: 1, icon: FileText, label: "My Posts" },
+    { id: 2, icon: PersonFill, label: "My Profile" },
+    { id: 3, icon: ShieldKeyhole, label: "Admin Panel" },
+    { id: 4, icon: ArrowRightFromSquare, label: "Log out" }   
 ];
 
 const followers = [

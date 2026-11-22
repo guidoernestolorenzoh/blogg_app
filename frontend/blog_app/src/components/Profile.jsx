@@ -23,6 +23,11 @@ const Profile = ({ user, theme, isOpen, className, onOpenChange, alt, size, titl
   }
 
   const handleAction = (item) => {
+    if (item.label === "My Posts") {
+      if (!user?._id && !user?.id) return;
+    navigate(`/my-posts`);
+    return;
+    }
     if (item.label === "My Profile") {
       if (!user?._id && !user?.id) return;
     navigate(`/my-profile/${user?._id || user?.id}`);

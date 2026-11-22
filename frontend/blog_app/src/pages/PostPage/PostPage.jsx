@@ -1,11 +1,13 @@
-import { Button, Dropdown, Label, Separator, Spinner } from "@heroui/react";
+import { Button, Chip, cn, Dropdown, Label, Separator, Spinner, toast } from "@heroui/react";
 import {
+  CircleFill,
   Comment,
   EllipsisVertical,
   Eye,
   Heart,
   HeartFill,
   NodesRight,
+  PaperPlane,
   PencilToLine,
 } from "@gravity-ui/icons";
 import Follow from "../../components/Follow";
@@ -19,12 +21,13 @@ import { useAuthStore } from "../../store/useAuthStore";
 import CreatePostModal from "../../components/Modals/CreatePostModal";
 
 const PostPage = () => {
-  const { post, loading, fetchPostById, likePost } = usePostStore();
+  const { post, loading, fetchPostById, likePost, publishPost } = usePostStore();
   const { token, user } = useAuthStore();
   const navigate = useNavigate();
 
   const { id } = useParams();
   const [liking, setLiking] = useState(false);
+  const [publishingId, setPublishingId] = useState(null);
   const [isEditOpen, setIsEditOpen] = useState(false);
 
   const [open, setOpen] = useState(false);
@@ -36,6 +39,25 @@ const PostPage = () => {
   const canEdit = user?.role === "admin" || (user?.role === "writer" &&
     post?.author?._id?.toString() === user?._id?.toString());
 
+    const handlePublish = async (postId) => {
+      if (!token) return navigate("/login");
+      if (publishingId) return;
+      setPublishingId(postId);
+  
+      try {
+        const promise = publishPost(postId);
+        toast.promise(promise, {
+          loading: "Publishing post...",
+          success: "Post published successfully",
+          error: (err) => err.message,
+        });
+        await promise;
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setPublishingId(null);
+      }
+    };
 
   useEffect(() => {
     fetchPostById(id);
@@ -93,7 +115,29 @@ const PostPage = () => {
           </div>
 
           <div className="items-center flex gap-2">
+          {user && post.author?._id?.toString() !== user._id?.toString() && (
             <Follow />
+          )}
+
+            <Chip
+                  className={cn(
+                    `rounded-full  px-4 py-2 gap-2 ${post?.status === "draft" ? "bg-warning-soft text-warning-soft-foreground" : "bg-success-soft text-success-soft-foreground"}`,
+                  )}
+                >
+                  <CircleFill width={7} />
+                  <Chip.Label className="text-sm">
+                    {post?.status === "draft" ? "Draft" : "Published"}
+                  </Chip.Label>
+                </Chip>
+                {post.status === "draft" && (
+                  <Button
+                    isDisabled={publishingId === post._id}
+                    onPress={() => handlePublish(post._id)}
+                  >
+                    <PaperPlane />
+                    Publish
+                  </Button>
+                )}
             {canEdit && (
                 <Dropdown isOpen={open} onOpenChange={setOpen}>
                   <Button

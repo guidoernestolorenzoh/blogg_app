@@ -11,6 +11,7 @@ import {
   Select,
   ListBox,
   FieldError,
+  Spinner,
 } from "@heroui/react";
 import { useEffect, useRef, useState } from "react";
 import TagInput from "./Inputs/TagInput";
@@ -19,7 +20,15 @@ import { postSchema } from "../../schemas/postSchema";
 import { usePostStore } from "../../store/usePostStore";
 import { useCategoryStore } from "../../store/useCategoryStore";
 
-const CreatePostModal = ({ className, nameButton, icon, headerTitle, post, isOpen, onOpenChange }) => {
+const CreatePostModal = ({
+  className,
+  nameButton,
+  icon,
+  headerTitle,
+  post,
+  isOpen,
+  onOpenChange,
+}) => {
   const isEditing = Boolean(post);
   const { createPost, updatePost } = usePostStore();
   const { categories, fetchCategories } = useCategoryStore();
@@ -59,7 +68,7 @@ const CreatePostModal = ({ className, nameButton, icon, headerTitle, post, isOpe
     }));
     setCoverImage("");
   }, [post]);
-  
+
   const resetForm = () => {
     if (isEditing && post) {
       setTitle(post.title || "");
@@ -84,8 +93,8 @@ const CreatePostModal = ({ className, nameButton, icon, headerTitle, post, isOpe
     setCoverImage("");
     setErrors({});
   };
-  
-  const handleSubmit = async (e, close) => {
+
+  const handleSubmit = async (e, close, status = "published") => {
     e?.preventDefault?.();
 
     const datos = {
@@ -107,7 +116,7 @@ const CreatePostModal = ({ className, nameButton, icon, headerTitle, post, isOpe
       if (isEditing) {
         const promise = updatePost(post._id, {
           ...result.data,
-          status: "published",
+          status,
           coverImage,
         });
         toast.promise(promise, {
@@ -119,7 +128,7 @@ const CreatePostModal = ({ className, nameButton, icon, headerTitle, post, isOpe
       } else {
         const promise = createPost({
           ...result.data,
-          status: "published",
+          status,
           coverImage,
         });
         toast.promise(promise, {
@@ -130,12 +139,17 @@ const CreatePostModal = ({ className, nameButton, icon, headerTitle, post, isOpe
         await promise;
       }
       resetForm();
-      close();      
+      close();
     } catch (err) {
       console.error(err);
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleOpenChange = (open) => {
+    if (!open) resetForm();
+    onOpenChange?.(open);
   };
 
   const handleFileClick = () => {
@@ -174,7 +188,7 @@ const CreatePostModal = ({ className, nameButton, icon, headerTitle, post, isOpe
   };
 
   return (
-    <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
+    <Modal isOpen={isOpen} onOpenChange={handleOpenChange}>
       {!isEditing && (
         <Button variant="secondary" className={className}>
           {icon}
@@ -197,14 +211,21 @@ const CreatePostModal = ({ className, nameButton, icon, headerTitle, post, isOpe
                     </Modal.Heading>
                   </div>
                   <p className="mt-1.5 text-sm leading-5 text-muted text-justify">
-                    Llene el siguiente formulario para poder crear un nuevo
-                    post.
+                    {isEditing
+                      ? "Aqui puedes editar el campo que desees del formulario."
+                      : "Llene el siguiente formulario para poder crear un nuevo post."}
                   </p>
                 </Modal.Header>
                 <Modal.Body>
                   <Surface variant="default">
                     <form
-                      onSubmit={(e) => handleSubmit(e, close)}
+                      onSubmit={(e) =>
+                        handleSubmit(
+                          e,
+                          close,
+                          isEditing ? post.status : "published",
+                        )
+                      }
                       noValidate
                       className="flex flex-col gap-4"
                     >
@@ -345,20 +366,29 @@ const CreatePostModal = ({ className, nameButton, icon, headerTitle, post, isOpe
                   </Surface>
                 </Modal.Body>
                 <Modal.Footer className="w-auto flex justify-between">
+                  {(!isEditing || post.status === "draft") && (
+                    <Button
+                      onPress={() => handleSubmit(null, close, "draft")}
+                      variant="secondary"
+                      isDisabled={loading}
+                      className="w-full"
+                    >
+                      <span>Save as Draft</span>
+                    </Button>
+                  )}
+
                   <Button
-                    slot="close"
-                    onPress={resetForm}
-                    variant="secondary"
-                    className="w-full"
-                  >
-                    Cancel
-                  </Button>
-                  <Button
-                    onPress={() => handleSubmit(null, close)}
+                    onPress={() =>
+                      handleSubmit(
+                        null,
+                        close,
+                        isEditing ? post.status : "published",
+                      )
+                    }
                     isDisabled={loading}
                     className="w-full"
                   >
-                    {isEditing ? "Edit Post" : "Create Post"}
+                    <span>{isEditing ? "Save Changes" : "Publish Post"}</span>
                   </Button>
                 </Modal.Footer>
               </>

@@ -18,6 +18,7 @@ import ProfileInfo from './pages/ProfilePage/ProfileInfo'
 import Blogs from './pages/Blogs/Blogs'
 import CategoryPage from './pages/CategoryPage/CategoryPage'
 import SearchPage from './pages/SearchPage/SearchPage'
+import MyPosts from './pages/MyPosts/MyPosts'
 
 
 function App() {  
@@ -58,6 +59,7 @@ function App() {
           <Route path='/tag/:tagName' element={<PostByTags/>}/>
           <Route path='/post/:id' element={<PostPage/>}/>
           <Route element={<ProtectedRoute />}>
+            <Route path='/my-posts' element={<MyPosts />}/>
             <Route path='/my-profile/:id' element={<ProfileInfo />}/>
           </Route>
           <Route path='/blogs' element={<Blogs />} />

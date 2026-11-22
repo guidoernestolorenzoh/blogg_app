@@ -79,7 +79,10 @@ const Home = () => {
                 </div>
               </div>
 
-              <Follow />
+              {user && p?.author?._id?.toString() !== user._id?.toString() && (
+                <Follow />
+              )}
+
             </div>
 
             <div className="my-2">

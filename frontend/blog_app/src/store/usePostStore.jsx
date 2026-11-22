@@ -9,45 +9,79 @@ export const usePostStore = create((set, get) => ({
   loading: false,
   error: null,
   hasMore: true,
+  myPosts: [],
 
   fetchPostById: async (id) => {
+    const token = useAuthStore.getState().token;    
     set({ post: null, loading: true, error: null });
     try {
       const res = await fetch(`${API_URL}/posts/${id}`, {
         method: "GET",
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Error al cargar el post");
 
       set({ post: data });
-      let viewed = [];
-      try {
-        const saved = JSON.parse(localStorage.getItem("viewedPosts"));
-        if (Array.isArray(saved)) viewed = saved;
-      } catch {
-        viewed = [];
-      }
-
-      if (viewed.includes(id)) return;
-
-      viewed.push(id);
-      localStorage.setItem("viewedPosts", JSON.stringify(viewed));
-
-      const viewRes = await fetch(`${API_URL}/posts/${id}/view`, {
-        method: "POST",
-      });
-      if (viewRes.ok) {
-        const viewData = await viewRes.json();
-        set({
-          post: viewData,
-          posts: get().posts.map((p) => (p._id === id ? viewData : p)),
+      const isOwner = data.author?._id?.toString() === useAuthStore.getState().user?._id?.toString();
+      if (data.status !== "draft" && !isOwner) {
+        let viewed = [];
+        try {
+          const saved = JSON.parse(localStorage.getItem("viewedPosts"));
+          if (Array.isArray(saved)) viewed = saved;
+        } catch {
+          viewed = [];
+        }
+  
+        if (viewed.includes(id)) return;
+  
+        viewed.push(id);
+        localStorage.setItem("viewedPosts", JSON.stringify(viewed));
+  
+        const viewRes = await fetch(`${API_URL}/posts/${id}/view`, {
+          method: "POST",
         });
+        if (viewRes.ok) {
+          const viewData = await viewRes.json();
+          set({
+            post: viewData,
+            posts: get().posts.map((p) => (p._id === id ? viewData : p)),
+          });
+        }
       }
+      
     } catch (error) {
       set({ error: error.message });
     } finally {
       set({ loading: false });
     }
+  },
+  
+  publishPost: async (id) => {
+    const token = useAuthStore.getState().token;
+    set({ error: null });
+    try {
+      const res = await fetch(`${API_URL}/posts/${id}/publish`, {
+        method: "PATCH",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Error al publicar el post");
+
+      set({
+        myPosts: get().myPosts.map((p) => (p._id === id ? data : p)),
+        post: get().post?._id === id ? data : get().post,
+        posts: get().posts.some((p) => p._id === id)
+          ? get().posts.map((p) => (p._id === id ? data : p))
+          : [data, ...get().posts],
+      });
+      
+      
+      return data;
+      } catch (error) {
+        set({ error: error.message });
+        throw error;
+      }
   },
 
   fetchPosts: async (page) => {
@@ -86,6 +120,47 @@ export const usePostStore = create((set, get) => ({
       if (page === 1) set({ loading: false });
     }
   },
+  
+  fetchMyPosts: async (page) => {
+    const token = useAuthStore.getState().token;
+    if (!page) {
+      set({ loading: true, error: null });
+      try {
+        const res = await fetch(`${API_URL}/posts/mine`, {
+          method: "GET",
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await res.json();
+        if (!res.ok)
+          throw new Error(data.message || "Error al cargar los posts");
+
+        set({ myPosts: data })
+      } catch (error) {
+        set({ error: error.message });
+      } finally {
+        set({ loading: false });
+      }
+      return;
+    }
+
+    if (page === 1) set({ loading: true, error: null });
+    try {
+      const res = await fetch(`${API_URL}/posts/mine?page=${page}&limit=6`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Error al cargar los posts");
+      if (page === 1) {
+        set({ myPosts: data.posts, hasMore: data.hasMore });
+      } else {
+        set({ myPosts: [...get().myPosts, ...data.posts], hasMore: data.hasMore });
+      }
+    } catch (error) {
+      set({ error: error.message });
+    } finally {
+      if (page === 1) set({ loading: false });
+    }
+  },
 
   createPost: async (postData) => {
     const token = useAuthStore.getState().token;
@@ -95,11 +170,12 @@ export const usePostStore = create((set, get) => ({
       formData.append("title", postData.title);
       formData.append("content", postData.content);
       formData.append("category", postData.category);
-      formData.append("status", postData.status);
+      
       postData.tags?.forEach((tag) => formData.append("tags", tag));
       if (postData.coverImage instanceof File) {
         formData.append("coverImage", postData.coverImage);
       }
+      if (postData.status !== undefined) formData.append("status", postData.status);
 
       const res = await fetch(`${API_URL}/posts`, {
         method: "POST",
@@ -110,7 +186,10 @@ export const usePostStore = create((set, get) => ({
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Error al crear el post");
 
-      set({ posts: [data.post, ...get().posts] });
+      set({ myPosts: [data.post, ...get().myPosts] });
+      if (data.post.status === "published") {
+        set({ posts: [data.post, ...get().posts] });
+      }
 
       return data.post;
     } catch (error) {
@@ -148,6 +227,8 @@ export const usePostStore = create((set, get) => ({
       set({
         post: get().post?._id === id ? data.post : get().post,
         posts: get().posts.map((p) => (p._id === id ? data.post : p)),
+        myPosts: get().myPosts.map((p) => (p._id === id ? data.post : p)),
+
       });
 
       return data.post;
