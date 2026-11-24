@@ -257,6 +257,25 @@ export const usePostStore = create((set, get) => ({
       throw error;
     }
   },
+  
+  sharePost: async (id) => {
+    try {
+      const res = await fetch(`${API_URL}/posts/${id}/share`, {
+        method: "POST",
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Error al compartir");
+      set({
+        post: data,
+        posts: get().posts.map((p) => (p._id === id ? data : p)),
+        myPosts: get().myPosts.map((p) => (p._id === id ? data : p))
+      });
+      return data;
+    } catch (error) {
+      set({ error: error.message });
+      throw error;
+    }
+  },
 
   searchResults: [],
 

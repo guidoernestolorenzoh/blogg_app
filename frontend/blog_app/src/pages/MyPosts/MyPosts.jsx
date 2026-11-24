@@ -3,14 +3,14 @@ import { Link, useNavigate } from "react-router-dom";
 import { usePostStore } from "../../store/usePostStore";
 import {
   CircleMinusFill,
-  Heart,
-  NodesRight,
+  Heart,  
   Comment,
   CircleFill,
   Eye,
   HeartFill,
   EllipsisVertical,
   PaperPlane,
+  PencilToSquare,
 } from "@gravity-ui/icons";
 import {
   Button,
@@ -27,6 +27,7 @@ import { timeAgo } from "../../utils";
 import Image from "../../components/Image";
 import { useAuthStore } from "../../store/useAuthStore";
 import CreatePostModal from "../../components/Modals/CreatePostModal";
+import ShareMenu from "../../components/ShareMenu";
 
 const MyPosts = () => {
   const { loading, likePost, fetchMyPosts, myPosts, publishPost } =
@@ -120,7 +121,7 @@ const MyPosts = () => {
               <div className="flex items-center gap-4 max-w-7xl  my-2">
                 <Chip
                   className={cn(
-                    `rounded-full  px-4 py-2 gap-2 ${p?.status === "draft" ? "bg-warning-soft text-warning-soft-foreground" : "bg-success-soft text-success-soft-foreground"}`,
+                    `rounded-full  px-4 py-2 gap-2 ${p?.status === "draft" ? "bg-orange-300 text-white dark:bg-warning-soft dark:text-warning-soft-foreground" : "bg-lime-600 text-white dark:bg-success-soft dark:text-success-soft-foreground"}`,
                   )}
                 >
                   <CircleFill width={7} />
@@ -203,9 +204,7 @@ const MyPosts = () => {
                     <Button variant="ghost">
                       <Comment className="size-6 text-gray-500" />
                     </Button>
-                    <Button variant="ghost">
-                      <NodesRight className="size-6 text-gray-500" />
-                    </Button>
+                    {p.status === "published" && <ShareMenu post={p} />}
                   </div>
                   <div className="flex items-center text-gray-400 gap-2">
                     <span>{p?.views} views</span>
@@ -225,6 +224,7 @@ const MyPosts = () => {
       })}
       <CreatePostModal
         post={editingPost}
+        icon={<PencilToSquare />}
         isOpen={isEditOpen}
         onOpenChange={setIsEditOpen}
         headerTitle="Edit Post"

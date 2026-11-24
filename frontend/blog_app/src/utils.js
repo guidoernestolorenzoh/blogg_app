@@ -126,6 +126,8 @@ const AVATARITEMS = [
     { id: 4, icon: ArrowRightFromSquare, label: "Log out" }   
 ];
 
+
+
 const followers = [
     {
       id: "1",

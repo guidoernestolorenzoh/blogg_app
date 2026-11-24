@@ -4,7 +4,6 @@ import Profile from "../../components/Profile";
 import {
   Heart,
   Comment,
-  NodesRight,
   CircleMinusFill,
   Eye,
   HeartFill,
@@ -15,9 +14,10 @@ import { timeAgo } from "../../utils";
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuthStore } from "../../store/useAuthStore";
+import ShareMenu from "../../components/ShareMenu";
 
 const Home = () => {
-  const { posts, fetchPosts, loading, likePost } = usePostStore();
+  const { post, posts, fetchPosts, loading, likePost } = usePostStore();
   const { token, user } = useAuthStore();
   const [likingId, setLikingId] = useState(null);
   const navigate = useNavigate();
@@ -126,9 +126,7 @@ const Home = () => {
                     <Button variant="ghost">
                       <Comment className="size-6 text-gray-500" />
                     </Button>
-                    <Button variant="ghost">
-                      <NodesRight className="size-6 text-gray-500" />
-                    </Button>
+                    <ShareMenu post={post} />
                   </div>
                   <div className="flex items-center text-gray-400 gap-2">
                     <span>{p?.views} views</span>

@@ -1,4 +1,12 @@
-import { Button, Chip, cn, Dropdown, Label, Separator, Spinner, toast } from "@heroui/react";
+import {
+  Button,
+  Chip,
+  Dropdown,
+  Label,
+  Separator,
+  Spinner,
+  toast,
+} from "@heroui/react";
 import {
   CircleFill,
   Comment,
@@ -6,7 +14,6 @@ import {
   Eye,
   Heart,
   HeartFill,
-  NodesRight,
   PaperPlane,
   PencilToLine,
 } from "@gravity-ui/icons";
@@ -19,9 +26,12 @@ import { useNavigate, useParams } from "react-router-dom";
 import { timeAgo } from "../../utils";
 import { useAuthStore } from "../../store/useAuthStore";
 import CreatePostModal from "../../components/Modals/CreatePostModal";
+import ShareMenu from "../../components/ShareMenu";
+
 
 const PostPage = () => {
-  const { post, loading, fetchPostById, likePost, publishPost } = usePostStore();
+  const { post, loading, fetchPostById, likePost, publishPost } =
+    usePostStore();
   const { token, user } = useAuthStore();
   const navigate = useNavigate();
 
@@ -36,28 +46,30 @@ const PostPage = () => {
     (id) => id.toString() === user?._id?.toString(),
   );
 
-  const canEdit = user?.role === "admin" || (user?.role === "writer" &&
-    post?.author?._id?.toString() === user?._id?.toString());
+  const canEdit =
+    user?.role === "admin" ||
+    (user?.role === "writer" &&
+      post?.author?._id?.toString() === user?._id?.toString());
 
-    const handlePublish = async (postId) => {
-      if (!token) return navigate("/login");
-      if (publishingId) return;
-      setPublishingId(postId);
-  
-      try {
-        const promise = publishPost(postId);
-        toast.promise(promise, {
-          loading: "Publishing post...",
-          success: "Post published successfully",
-          error: (err) => err.message,
-        });
-        await promise;
-      } catch (error) {
-        console.error(error);
-      } finally {
-        setPublishingId(null);
-      }
-    };
+  const handlePublish = async (postId) => {
+    if (!token) return navigate("/login");
+    if (publishingId) return;
+    setPublishingId(postId);
+
+    try {
+      const promise = publishPost(postId);
+      toast.promise(promise, {
+        loading: "Publishing post...",
+        success: "Post published successfully",
+        error: (err) => err.message,
+      });
+      await promise;
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setPublishingId(null);
+    }
+  };
 
   useEffect(() => {
     fetchPostById(id);
@@ -115,57 +127,63 @@ const PostPage = () => {
           </div>
 
           <div className="items-center flex gap-2">
-          {user && post.author?._id?.toString() !== user._id?.toString() && (
-            <Follow />
-          )}
+            {user && post.author?._id?.toString() !== user._id?.toString() && (
+              <Follow />
+            )}
 
-            <Chip
-                  className={cn(
-                    `rounded-full  px-4 py-2 gap-2 ${post?.status === "draft" ? "bg-warning-soft text-warning-soft-foreground" : "bg-success-soft text-success-soft-foreground"}`,
-                  )}
-                >
-                  <CircleFill width={7} />
-                  <Chip.Label className="text-sm">
-                    {post?.status === "draft" ? "Draft" : "Published"}
-                  </Chip.Label>
-                </Chip>
-                {post.status === "draft" && (
-                  <Button
-                    isDisabled={publishingId === post._id}
-                    onPress={() => handlePublish(post._id)}
-                  >
-                    <PaperPlane />
-                    Publish
-                  </Button>
-                )}
+            {post.status === "draft" && (
+              <Chip
+                size="sm"
+                className="rounded-full  px-4 py-1.5 gap-2 bg-orange-300 text-white dark:bg-warning-soft dark:text-warning-soft-foreground"
+              >
+                <CircleFill width={7} />
+                <Chip.Label>Draft</Chip.Label>
+              </Chip>
+            )}
+
+            {post.status === "draft" && (
+              <Button
+                size="sm"
+                isDisabled={publishingId === post._id}
+                onPress={() => handlePublish(post._id)}
+                className="font-medium"
+              >
+                <PaperPlane className="size-4" />
+                Publish
+              </Button>
+            )}
+
             {canEdit && (
-                <Dropdown isOpen={open} onOpenChange={setOpen}>
-                  <Button
-                    isIconOnly
-                    size="lg"
-                    aria-label="Menu"
-                    variant="secondary"
-                    className="bg-transparent"
-                  >
-                    <EllipsisVertical className="outline-none" />
-                  </Button>
-                  <Dropdown.Popover placement="bottom right">
-                    <Dropdown.Menu>
-                      <Dropdown.Item id="edit-post" textValue="Edit Post" onPress={() => setIsEditOpen(true)}>
-                        <Label>Edit Post</Label>
-                      </Dropdown.Item>
-                    </Dropdown.Menu>
-                  </Dropdown.Popover>
-                </Dropdown>
-              )}
-              <CreatePostModal
-                icon={<PencilToLine/>}
-                post={post}
-                isOpen={isEditOpen}
-                onOpenChange={setIsEditOpen}
-                headerTitle="Edit Post"
-              />
-
+              <Dropdown isOpen={open} onOpenChange={setOpen}>
+                <Button
+                  isIconOnly
+                  size="lg"
+                  aria-label="Menu"
+                  variant="secondary"
+                  className="bg-transparent"
+                >
+                  <EllipsisVertical className="outline-none" />
+                </Button>
+                <Dropdown.Popover placement="bottom right">
+                  <Dropdown.Menu>
+                    <Dropdown.Item
+                      id="edit-post"
+                      textValue="Edit Post"
+                      onPress={() => setIsEditOpen(true)}
+                    >
+                      <Label>Edit Post</Label>
+                    </Dropdown.Item>
+                  </Dropdown.Menu>
+                </Dropdown.Popover>
+              </Dropdown>
+            )}
+            <CreatePostModal
+              icon={<PencilToLine />}
+              post={post}
+              isOpen={isEditOpen}
+              onOpenChange={setIsEditOpen}
+              headerTitle="Edit Post"
+            />
           </div>
         </div>
 
@@ -200,7 +218,6 @@ const PostPage = () => {
                 </Button>
 
                 <Button
-                  isSelected={liked}
                   onPress={handleLike}
                   isDisabled={liking}
                   variant="ghost"
@@ -215,9 +232,7 @@ const PostPage = () => {
                 <Button variant="ghost">
                   <Comment className="size-6 text-gray-500" />
                 </Button>
-                <Button variant="ghost">
-                  <NodesRight className="size-6 text-gray-500" />
-                </Button>
+                <ShareMenu post={post} />
               </div>
               <div className="flex items-center text-gray-400 gap-2">
                 <span>{post?.views} views</span>

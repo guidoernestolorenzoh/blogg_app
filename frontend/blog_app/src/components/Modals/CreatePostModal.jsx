@@ -11,7 +11,6 @@ import {
   Select,
   ListBox,
   FieldError,
-  Spinner,
 } from "@heroui/react";
 import { useEffect, useRef, useState } from "react";
 import TagInput from "./Inputs/TagInput";
@@ -324,11 +323,12 @@ const CreatePostModal = ({
                       </TextField>
                       <TextField>
                         <TagInput
+                          key={post?._id || "new"}
                           tags={postData?.tags || []}
                           setTags={(data) => {
                             handleValueChange("tags", data);
                           }}
-                        />
+                        />                        
                       </TextField>
 
                       <TextField>

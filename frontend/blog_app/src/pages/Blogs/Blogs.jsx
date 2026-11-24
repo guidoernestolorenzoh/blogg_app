@@ -4,7 +4,6 @@ import {
   Eye,
   Heart,
   HeartFill,
-  NodesRight,
 } from "@gravity-ui/icons";
 import { timeAgo } from "../../utils";
 import { Button, Card, Chip, Label, Spinner } from "@heroui/react";
@@ -14,6 +13,7 @@ import { usePostStore } from "../../store/usePostStore";
 import { useEffect, useState } from "react";
 import Image from "../../components/Image";
 import { useAuthStore } from "../../store/useAuthStore";
+import ShareMenu from "../../components/ShareMenu";
 
 const Blogs = () => {
   const { posts, fetchPosts, loading, likePost, hasMore } = usePostStore();
@@ -188,12 +188,7 @@ const Blogs = () => {
                           </span>
                         </div>
                         <div className="flex items-center">
-                          <Button
-                            variant="ghost"
-                            className="hover:bg-transparent hover:opacity-100"
-                          >
-                            <NodesRight className="size-5 text-gray-500" />
-                          </Button>
+                          <ShareMenu post={u} />
                           <span className="text-sm text-muted">
                             {u?.shares}
                           </span>

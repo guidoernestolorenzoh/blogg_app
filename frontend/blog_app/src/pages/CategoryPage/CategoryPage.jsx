@@ -4,7 +4,6 @@ import { usePostStore } from "../../store/usePostStore";
 import {
   CircleMinusFill,
   Heart,
-  NodesRight,
   Comment,
   CircleFill,
   Eye,
@@ -16,11 +15,12 @@ import { timeAgo } from "../../utils";
 import Follow from "../../components/Follow";
 import Image from "../../components/Image";
 import { useAuthStore } from "../../store/useAuthStore";
+import ShareMenu from "../../components/ShareMenu";
 
 const CategoryPage = () => {
   const { slug } = useParams();
 
-  const { posts, loading, fetchPosts, likePost } = usePostStore();
+  const { post, posts, loading, fetchPosts, likePost } = usePostStore();
   const { user, token } = useAuthStore();
   const navigate = useNavigate();
   const [likingId, setLikingId] = useState(null);
@@ -143,9 +143,7 @@ const CategoryPage = () => {
                     <Button variant="ghost">
                       <Comment className="size-6 text-gray-500" />
                     </Button>
-                    <Button variant="ghost">
-                      <NodesRight className="size-6 text-gray-500" />
-                    </Button>
+                    <ShareMenu post={post} />
                   </div>
                   <div className="flex items-center text-gray-400 gap-2">
                     <span>{p?.views} views</span>
