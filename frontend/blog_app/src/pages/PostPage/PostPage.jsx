@@ -15,7 +15,9 @@ import {
   Heart,
   HeartFill,
   PaperPlane,
+  Pencil,
   PencilToLine,
+  TrashBin,
 } from "@gravity-ui/icons";
 import Follow from "../../components/Follow";
 import Profile from "../../components/Profile";
@@ -26,12 +28,21 @@ import { useNavigate, useParams } from "react-router-dom";
 import { timeAgo } from "../../utils";
 import { useAuthStore } from "../../store/useAuthStore";
 import CreatePostModal from "../../components/Modals/CreatePostModal";
+import DeleteDialog from "../../components/Modals/DeleteDialog";
 import ShareMenu from "../../components/ShareMenu";
-
+import RelatedContent from "../../components/relatedContent";
 
 const PostPage = () => {
-  const { post, loading, fetchPostById, likePost, publishPost } =
-    usePostStore();
+  const {
+    post,
+    loading,
+    fetchPostById,
+    likePost,
+    publishPost,
+    relatedPosts,
+    fetchRelatedPosts,
+    deletePost,
+  } = usePostStore();
   const { token, user } = useAuthStore();
   const navigate = useNavigate();
 
@@ -41,6 +52,7 @@ const PostPage = () => {
   const [isEditOpen, setIsEditOpen] = useState(false);
 
   const [open, setOpen] = useState(false);
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
 
   const liked = post?.likedBy?.some(
     (id) => id.toString() === user?._id?.toString(),
@@ -73,6 +85,7 @@ const PostPage = () => {
 
   useEffect(() => {
     fetchPostById(id);
+    fetchRelatedPosts(id);
   }, [id]);
 
   const handleLike = async () => {
@@ -85,6 +98,24 @@ const PostPage = () => {
       console.error(error);
     } finally {
       setLiking(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!token) return navigate("/login");
+
+    try {
+      const promise = deletePost(post._id);
+      toast.promise(promise, {
+        loading: "Deleting post...",
+        success: "Post deleted successfully",
+        error: (err) => err.message,
+      });
+      await promise;
+      setIsDeleteOpen(false);
+      navigate("/my-posts");
+    } catch (error) {
+      console.error(error);
     }
   };
 
@@ -171,7 +202,17 @@ const PostPage = () => {
                       textValue="Edit Post"
                       onPress={() => setIsEditOpen(true)}
                     >
+                      <Pencil/>
                       <Label>Edit Post</Label>
+                    </Dropdown.Item>
+                    <Dropdown.Item
+                      id="delete-post"
+                      textValue="Delete Post"
+                      className="text-red-500"
+                      onPress={() => setIsDeleteOpen(true)}
+                    >
+                      <TrashBin/>
+                      <Label className="text-red-500">Delete Post</Label>
                     </Dropdown.Item>
                   </Dropdown.Menu>
                 </Dropdown.Popover>
@@ -183,6 +224,12 @@ const PostPage = () => {
               isOpen={isEditOpen}
               onOpenChange={setIsEditOpen}
               headerTitle="Edit Post"
+            />
+            <DeleteDialog
+              isOpen={isDeleteOpen}
+              onOpenChange={setIsDeleteOpen}
+              post={post}
+              onConfirm={handleDelete}
             />
           </div>
         </div>
@@ -245,6 +292,12 @@ const PostPage = () => {
               </div>
             </div>
             <Separator className="mt-4" />
+            {relatedPosts.length > 0 && (
+              <div className="flex flex-col">
+                <h2 className="text-3xl my-6">Sugerencias para tí</h2>
+                <RelatedContent post={relatedPosts} />
+              </div>
+            )}
           </div>
         </div>
       </div>

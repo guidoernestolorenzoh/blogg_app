@@ -1,5 +1,5 @@
 const express = require("express");
-const { createPost, getPosts, getPostById, searchPosts, updatePost, getMyPosts, publishPost, sharePost } = require("../controllers/postController");
+const { createPost, getPosts, getPostById, searchPosts, updatePost, getMyPosts, publishPost, sharePost, relatedContent, deletePost } = require("../controllers/postController");
 const { protect, optionalAuth } = require("../middleware/auth");
 const { authorize } = require("../middleware/authorize");
 const {storage, fileFilter} = require('../config/multer');
@@ -19,6 +19,8 @@ router.get('/mine', protect, getMyPosts);
 router.patch('/:id/publish', protect, authorize("writer", "admin"), publishPost);
 router.get('/:id', optionalAuth, getPostById);
 router.put('/:id', protect, authorize("writer", "admin"), uploads.single("coverImage"), updatePost);
+router.delete('/:id', protect, authorize("writer", "admin"), deletePost);
+router.get('/:id/related', relatedContent);
 router.post('/:id/view', incrementViews);
 router.post('/:id/share', sharePost);
 router.post('/:id/like', protect, likePost);

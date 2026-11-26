@@ -69,15 +69,13 @@ const updatePost = async (req, res) => {
     if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
       return res.status(404).json({ message: "Post no encontrado" });
     }
-    
+
     const { title, content, category, status } = req.body;
 
     if (!title || !title.trim() || !content || !content.trim()) {
-      return res
-        .status(400)
-        .json({ message: "Por favor, rellene los campos" });
+      return res.status(400).json({ message: "Por favor, rellene los campos" });
     }
-    
+
     if (!category) {
       return res
         .status(400)
@@ -85,10 +83,16 @@ const updatePost = async (req, res) => {
     }
 
     const existing = await Post.findById(req.params.id);
-      if (!existing) return res.status(404).json({ message: "Post no encontrado" });
-      if (existing.author.toString() !== req.user._id.toString() && req.user.role !== "admin") {
-        return res.status(403).json({ message: "No tienes permiso para editar este post" });
-      }
+    if (!existing)
+      return res.status(404).json({ message: "Post no encontrado" });
+    if (
+      existing.author.toString() !== req.user._id.toString() &&
+      req.user.role !== "admin"
+    ) {
+      return res
+        .status(403)
+        .json({ message: "No tienes permiso para editar este post" });
+    }
 
     const existingCategory = await Category.findById(category);
     if (!existingCategory) {
@@ -101,23 +105,28 @@ const updatePost = async (req, res) => {
       title: title.trim(),
       content: content.trim(),
       excerpt,
-      category      
+      category,
     };
     if (req.body.status !== undefined) {
       updateData.status = req.body.status;
     }
     if (req.body.tags !== undefined) {
-      updateData.tags = Array.isArray(req.body.tags) ? req.body.tags : [req.body.tags];
+      updateData.tags = Array.isArray(req.body.tags)
+        ? req.body.tags
+        : [req.body.tags];
     }
     if (req.file) {
       updateData.coverImage = `${req.protocol}://${req.get("host")}/uploads/${req.file.filename}`;
     }
-    
-    const post = await Post.findByIdAndUpdate(req.params.id, updateData, { new: true, runValidators: true });
-    
+
+    const post = await Post.findByIdAndUpdate(req.params.id, updateData, {
+      new: true,
+      runValidators: true,
+    });
+
     await post.populate("author", "name avatar bio title email");
     await post.populate("category", "name slug");
-    
+
     res.status(200).json({
       message: "Post actualizado satisfactoriamente!",
       post,
@@ -142,6 +151,33 @@ const updatePost = async (req, res) => {
   }
 };
 
+const deletePost = async (req, res) => {
+  try {
+    const existing = await Post.findById(req.params.id);
+    if (!existing)
+      return res.status(404).json({ message: "Post no encontrado" });
+    if (
+      existing.author.toString() !== req.user._id.toString() &&
+      req.user.role !== "admin"
+    ) {
+      return res
+        .status(403)
+        .json({ message: "No tienes permiso para eliminar este post" });
+    }
+
+    await Post.findByIdAndDelete(req.params.id);
+
+    res.status(200).json({message: "Articulo eliminado satisfactoriamente"})
+  } catch (error) {
+    if (error.name === "CastError") {
+      return res.status(404).json({ message: "Post no encontrado" });
+    }
+    res
+      .status(500)
+      .json({ message: "Error al eliminar el post", error: error.message });
+  }
+}
+
 const getPosts = async (req, res) => {
   try {
     if (!req.query.page || !req.query.limit) {
@@ -150,23 +186,23 @@ const getPosts = async (req, res) => {
         .populate("category", "name slug")
         .sort({ createdAt: -1 });
       return res.status(200).json(posts);
-    } 
+    }
 
     const page = parseInt(req.query.page);
-      const limit = parseInt(req.query.limit);
-      const skip = (page - 1) * limit;
+    const limit = parseInt(req.query.limit);
+    const skip = (page - 1) * limit;
 
-      const total = await Post.countDocuments({ status: "published" });
-      const totalPages = Math.ceil(total / limit);
-      const hasMore = page < totalPages;
+    const total = await Post.countDocuments({ status: "published" });
+    const totalPages = Math.ceil(total / limit);
+    const hasMore = page < totalPages;
 
-      const posts = await Post.find({ status: "published" })
-        .populate("author", "name avatar bio title email")
-        .populate("category", "name slug")
-        .sort({ createdAt: -1 })
-        .skip(skip)
-        .limit(limit);
-      return res.status(200).json({ posts, totalPages, hasMore });
+    const posts = await Post.find({ status: "published" })
+      .populate("author", "name avatar bio title email")
+      .populate("category", "name slug")
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
+    return res.status(200).json({ posts, totalPages, hasMore });
   } catch (error) {
     res
       .status(500)
@@ -183,15 +219,15 @@ const getPostById = async (req, res) => {
     if (!post) {
       return res.status(404).json({ message: "No hay post para mostrar" });
     }
-    
+
     if (post.status === "draft") {
-      const isOwner = req.user && post.author._id.toString() === req.user._id.toString();
+      const isOwner =
+        req.user && post.author._id.toString() === req.user._id.toString();
       const isAdmin = req.user && req.user.role === "admin";
       if (!isOwner && !isAdmin) {
         return res.status(404).json({ message: "No hay post para mostrar" });
       }
     }
-    
 
     res.status(200).json(post);
   } catch (error) {
@@ -212,23 +248,23 @@ const getMyPosts = async (req, res) => {
         .populate("category", "name slug")
         .sort({ createdAt: -1 });
       return res.status(200).json(posts);
-    } 
+    }
 
     const page = parseInt(req.query.page);
-      const limit = parseInt(req.query.limit);
-      const skip = (page - 1) * limit;
+    const limit = parseInt(req.query.limit);
+    const skip = (page - 1) * limit;
 
-      const total = await Post.countDocuments({ author: req.user._id });
-      const totalPages = Math.ceil(total / limit);
-      const hasMore = page < totalPages;
+    const total = await Post.countDocuments({ author: req.user._id });
+    const totalPages = Math.ceil(total / limit);
+    const hasMore = page < totalPages;
 
-      const posts = await Post.find({ author: req.user._id })
-        .populate("author", "name avatar bio title email")
-        .populate("category", "name slug")
-        .sort({ createdAt: -1 })
-        .skip(skip)
-        .limit(limit);
-      return res.status(200).json({ posts, totalPages, hasMore });
+    const posts = await Post.find({ author: req.user._id })
+      .populate("author", "name avatar bio title email")
+      .populate("category", "name slug")
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
+    return res.status(200).json({ posts, totalPages, hasMore });
   } catch (error) {
     res
       .status(500)
@@ -239,25 +275,29 @@ const getMyPosts = async (req, res) => {
 const publishPost = async (req, res) => {
   try {
     const existing = await Post.findById(req.params.id);
-    if (!existing) return res.status(404).json({ message: "Post no encontrado" });
-    if (existing.author.toString() !== req.user._id.toString() && req.user.role !== "admin") {
-      return res.status(403).json({ message: "No tienes permiso para editar este post" });
+    if (!existing)
+      return res.status(404).json({ message: "Post no encontrado" });
+    if (
+      existing.author.toString() !== req.user._id.toString() &&
+      req.user.role !== "admin"
+    ) {
+      return res
+        .status(403)
+        .json({ message: "No tienes permiso para editar este post" });
     }
-      const post = await Post.findByIdAndUpdate(
-          req.params.id,
-          { status: "published"  },
-          { new: true, runValidators: true }
-        )
-          .populate("author", "name avatar bio title")
-          .populate("category", "name slug");
-        
-        if (!post) {
-          return res.status(404).json({ message: "No hay post para mostrar" });
-        }
-    
-       
-        res.status(200).json(post);
-      
+    const post = await Post.findByIdAndUpdate(
+      req.params.id,
+      { status: "published" },
+      { new: true, runValidators: true },
+    )
+      .populate("author", "name avatar bio title")
+      .populate("category", "name slug");
+
+    if (!post) {
+      return res.status(404).json({ message: "No hay post para mostrar" });
+    }
+
+    res.status(200).json(post);
   } catch (error) {
     if (error.name === "CastError") {
       return res.status(404).json({ message: "Post no encontrado" });
@@ -299,20 +339,19 @@ const searchPosts = async (req, res) => {
 
 const sharePost = async (req, res) => {
   try {
-      const post = await Post.findByIdAndUpdate(
-          req.params.id,
-          { $inc: { shares: 1 } },
-          { new: true }
-        )
-          .populate("author", "name avatar bio title")
-          .populate("category", "name slug");
-        
-        if (!post) {
-          return res.status(404).json({ message: "No hay post para mostrar" });
-        }
-        
-        res.status(200).json(post);
-      
+    const post = await Post.findByIdAndUpdate(
+      req.params.id,
+      { $inc: { shares: 1 } },
+      { new: true },
+    )
+      .populate("author", "name avatar bio title")
+      .populate("category", "name slug");
+
+    if (!post) {
+      return res.status(404).json({ message: "No hay post para mostrar" });
+    }
+
+    res.status(200).json(post);
   } catch (error) {
     if (error.name === "CastError") {
       return res.status(404).json({ message: "Post no encontrado" });
@@ -323,4 +362,63 @@ const sharePost = async (req, res) => {
   }
 };
 
-module.exports = { createPost, getPosts, getPostById, searchPosts, publishPost, updatePost, getMyPosts, sharePost };
+const relatedContent = async (req, res) => {
+  try {
+    const post = await Post.findById(
+      req.params.id
+    )
+  
+    if (!post) {
+      return res.status(404).json({ message: "Post no encontrado" });
+    }
+
+     let postRelated = await Post.find({
+      _id: { $ne: post._id },
+      status: "published",
+      $or:[
+       { category:  post.category},
+        {tags: { $in: post.tags }}
+      ],
+    })
+      .populate("author", "name avatar bio title")
+      .populate("category", "name slug")
+      .sort({views: -1})
+      .limit(3);
+
+      if (postRelated.length < 3) {
+        const fill = await Post.find({
+          _id: { $ne: post._id, $nin: postRelated.map((p)=> p._id) },          
+          status: "published"          
+        })
+        .populate("author", "name avatar bio title")
+        .populate("category", "name slug")
+        .sort({views: -1})
+        .limit(3 - postRelated.length)
+
+        postRelated = [...postRelated, ...fill]
+      }
+
+    res.status(200).json(postRelated);
+    
+  } catch (error) {
+    if (error.name === "CastError") {
+      return res.status(404).json({ message: "Post no encontrado" });
+    }
+    res
+      .status(500)
+      .json({ message: "Error al obtener el post", error: error.message });
+  }
+};
+
+module.exports = {
+  createPost,
+  getPosts,
+  getPostById,
+  searchPosts,
+  publishPost,
+  updatePost,
+  getMyPosts,
+  sharePost,
+  relatedContent,
+  deletePost
+};

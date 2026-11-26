@@ -10,6 +10,7 @@ export const usePostStore = create((set, get) => ({
   error: null,
   hasMore: true,
   myPosts: [],
+  relatedPosts: [],
 
   fetchPostById: async (id) => {
     const token = useAuthStore.getState().token;    
@@ -250,6 +251,7 @@ export const usePostStore = create((set, get) => ({
       set({
         post: data,
         posts: get().posts.map((p) => (p._id === id ? data : p)),
+        myPosts: get().myPosts.map((p) => (p._id === id ? data : p))
       });
       return data;
     } catch (error) {
@@ -270,6 +272,43 @@ export const usePostStore = create((set, get) => ({
         posts: get().posts.map((p) => (p._id === id ? data : p)),
         myPosts: get().myPosts.map((p) => (p._id === id ? data : p))
       });
+      return data;
+    } catch (error) {
+      set({ error: error.message });
+      throw error;
+    }
+  },
+  
+  deletePost: async (id) => {
+    const token = useAuthStore.getState().token;
+    try {
+      const res = await fetch(`${API_URL}/posts/${id}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Error al eliminar");
+      set({
+        post: get().post?._id === id ? null : get().post,
+        posts: get().posts.filter((p) => p._id !== id ),
+        myPosts: get().myPosts.filter((p) => p._id !== id )
+      });
+      return data;
+    } catch (error) {
+      set({ error: error.message });
+      throw error;
+    }
+  },
+  
+  fetchRelatedPosts: async (id) => {
+    set({ relatedPosts: [], error: null });
+    try {
+      const res = await fetch(`${API_URL}/posts/${id}/related`, {
+        method: "GET",
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Error al obtener los post relacionados");
+      set({ relatedPosts: data });
       return data;
     } catch (error) {
       set({ error: error.message });

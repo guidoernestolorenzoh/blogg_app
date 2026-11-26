@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { usePostStore } from "../../store/usePostStore";
 import {
   CircleMinusFill,
-  Heart,  
+  Heart,
   Comment,
   CircleFill,
   Eye,
@@ -11,6 +11,8 @@ import {
   EllipsisVertical,
   PaperPlane,
   PencilToSquare,
+  TrashBin,
+  Pencil,
 } from "@gravity-ui/icons";
 import {
   Button,
@@ -28,15 +30,24 @@ import Image from "../../components/Image";
 import { useAuthStore } from "../../store/useAuthStore";
 import CreatePostModal from "../../components/Modals/CreatePostModal";
 import ShareMenu from "../../components/ShareMenu";
+import DeleteDialog from "../../components/Modals/DeleteDialog";
 
 const MyPosts = () => {
-  const { loading, likePost, fetchMyPosts, myPosts, publishPost } =
-    usePostStore();
+  const {
+    loading,
+    likePost,
+    fetchMyPosts,
+    myPosts,
+    publishPost,
+    deletePost,
+  } = usePostStore();
   const { token, user } = useAuthStore();
   const [likingId, setLikingId] = useState(null);
   const [publishingId, setPublishingId] = useState(null);
   const [editingPost, setEditingPost] = useState(null);
   const [isEditOpen, setIsEditOpen] = useState(false);
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  const [postToDelete, setPostToDelete] = useState(null);
   const navigate = useNavigate();
 
   const handleLike = async (postId) => {
@@ -49,6 +60,25 @@ const MyPosts = () => {
       console.error(error);
     } finally {
       setLikingId(null);
+    }
+  };
+
+  const handleDelete = async (postId) => {
+    if (!token) return navigate("/login");
+
+    try {
+      const promise = deletePost(postId);
+      toast.promise(promise, {
+        loading: "Deleting post...",
+        success: "Post deleted successfully",
+        error: (err) => err.message,
+      });
+      await promise;
+      setIsDeleteOpen(false);
+      setPostToDelete(null);
+      await fetchMyPosts();
+    } catch (error) {
+      console.error(error);
     }
   };
 
@@ -152,7 +182,17 @@ const MyPosts = () => {
                           setIsEditOpen(true);
                         }}
                       >
+                        <Pencil/>
                         <Label>Edit Post</Label>
+                      </Dropdown.Item>
+                      <Dropdown.Item
+                        id="delete-post"
+                        textValue="Delete Post"
+                        className="text-red-500"
+                        onPress={() => { setPostToDelete(p); setIsDeleteOpen(true); }}
+                      >
+                        <TrashBin />
+                        <Label className="text-red-500">Delete Post</Label>
                       </Dropdown.Item>
                     </Dropdown.Menu>
                   </Dropdown.Popover>
@@ -165,7 +205,7 @@ const MyPosts = () => {
               <div className="flex flex-col mx-16 ">
                 <h1 className="text-3xl font-bold mb-5">{p?.title}</h1>
 
-                <p className="text-xl text-justify mb-5">
+                <p className="text-xl text-justify mb-5 wrap-break-word">
                   {p?.excerpt}
                   <Link to={`/post/${p._id}`}>
                     <span className="text-green-400 mx-2 cursor-pointer">
@@ -228,6 +268,12 @@ const MyPosts = () => {
         isOpen={isEditOpen}
         onOpenChange={setIsEditOpen}
         headerTitle="Edit Post"
+      />
+      <DeleteDialog
+        isOpen={isDeleteOpen}
+        onOpenChange={setIsDeleteOpen}
+        post={postToDelete}
+        onConfirm={() => handleDelete(postToDelete._id)}
       />
     </>
   );

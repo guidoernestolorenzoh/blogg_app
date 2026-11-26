@@ -5,7 +5,7 @@ import { useAuthStore } from "../store/useAuthStore";
 import { useNavigate } from "react-router-dom";
 
 
-const Profile = ({ user, theme, isOpen, className, onOpenChange, alt, size, title, src }) => {
+const Profile = ({ user, theme, isOpen, className, onOpenChange, alt, title, src }) => {
   
   const navigate = useNavigate();
   const { logout } = useAuthStore();
