@@ -12,6 +12,7 @@ import {
   Comment,
   EllipsisVertical,
   Eye,
+  Hashtag,
   Heart,
   HeartFill,
   PaperPlane,
@@ -202,7 +203,7 @@ const PostPage = () => {
                       textValue="Edit Post"
                       onPress={() => setIsEditOpen(true)}
                     >
-                      <Pencil/>
+                      <Pencil />
                       <Label>Edit Post</Label>
                     </Dropdown.Item>
                     <Dropdown.Item
@@ -211,7 +212,7 @@ const PostPage = () => {
                       className="text-red-500"
                       onPress={() => setIsDeleteOpen(true)}
                     >
-                      <TrashBin/>
+                      <TrashBin />
                       <Label className="text-red-500">Delete Post</Label>
                     </Dropdown.Item>
                   </Dropdown.Menu>
@@ -256,6 +257,18 @@ const PostPage = () => {
                   {parrafo}
                 </p>
               ))}
+            </div>
+
+            <div className="">
+              {post?.tags.length > 0 && ( 
+                post.tags.map((postTag)=> (
+                <Chip className="mx-2 my-1">
+                  {/* <CircleFill width={6} /> */}
+                  <Hashtag/>
+                  <Chip.Label>{postTag}</Chip.Label>
+                </Chip>
+                ))         
+              )}
             </div>
 
             <div className="flex justify-between mt-2 items-center">
